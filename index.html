@@ -77,11 +77,15 @@
     /* 閱讀模式鎖定 */
     body.read-mode #noteViewer { pointer-events: none; }
     body.read-mode .toolbar { display: none !important; }
-    body.read-mode .diagram-toolbar, body.read-mode .anchor-point, body.read-mode .box-drag-handle, body.read-mode .box-quick-del, body.read-mode .line-del-btn { display: none !important; }
+    body.read-mode .diagram-container { border-style: solid; border-color: #e0e0e0; background: #fff; }
+    body.read-mode .anchor-point, body.read-mode .box-drag-handle, body.read-mode .box-quick-del, body.read-mode .line-del-btn, body.read-mode .diagram-quick-del { display: none !important; }
 
     /* 樹狀圖畫布 */
     .diagram-container { position: relative; width: 100%; min-height: 320px; margin: 14px 0; border: 2px dashed #aaa; border-radius: 8px; background: #fafafa; overflow: hidden; user-select: none; }
-    .diagram-toolbar { position: absolute; top: 6px; right: 6px; z-index: 20; display: flex; gap: 4px; }
+    
+    /* 樹狀圖畫布右上角一鍵刪除按鈕 */
+    .diagram-quick-del { position: absolute; top: 6px; right: 6px; width: 24px; height: 24px; background: #ff3b30; color: white; border-radius: 50%; font-size: 14px; font-weight: bold; line-height: 24px; text-align: center; cursor: pointer; z-index: 30; box-shadow: 0 2px 5px rgba(0,0,0,0.2); border: 1.5px solid #fff; }
+    .diagram-quick-del:hover { background: #d9251d; transform: scale(1.1); }
     
     .diagram-svg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; }
     .diagram-svg line { pointer-events: stroke; cursor: pointer; stroke-width: 6; stroke: #007aff; }
@@ -268,7 +272,7 @@
     let dragStartX = 0, dragStartY = 0, boxInitialLeft = 0, boxInitialTop = 0;
     let isReadMode = false;
 
-    let chapters = JSON.parse(localStorage.getItem("acc_struct_v15")) || [
+    let chapters = JSON.parse(localStorage.getItem("acc_struct_v16")) || [
       { title: "會計基礎", sections: [{ id: "sec_1", title: "會計方程式", content: "會計基本恆等式：資產 = 負債 + 權益" }] },
       { title: "財務分析", sections: [{ id: "sec_2", title: "周轉天數與毛利率", content: "點擊左上角 ☰ 可展開章節切換。" }] }
     ];
@@ -415,6 +419,8 @@
       const id = "diag_" + Date.now();
       const html = `
         <div class="diagram-container" id="${id}" contenteditable="false">
+          <!-- 樹狀圖右上角一鍵刪除按鈕 -->
+          <div class="diagram-quick-del" title="刪除整個樹狀圖" onclick="removeEntireDiagram('${id}')">✕</div>
           <div class="line-del-btn" id="del_btn_${id}" title="刪除連線" onclick="removeLineByBtn('${id}')">✕</div>
           <svg class="diagram-svg" id="svg_${id}">
             <defs>
@@ -427,6 +433,15 @@
       `;
       document.execCommand('insertHTML', false, html);
       debouncedSave();
+    }
+
+    /* 一鍵刪除整個樹狀圖畫布 */
+    function removeEntireDiagram(diagId) {
+      const diag = document.getElementById(diagId);
+      if (diag && confirm("確定要刪除整個樹狀圖及其所有文字框嗎？")) {
+        diag.remove();
+        debouncedSave();
+      }
     }
 
     function addBoxToActiveDiagram() {
@@ -501,7 +516,7 @@
 
     function handleStart(e) {
       if (document.body.classList.contains('read-mode')) return;
-      if (e.target.classList.contains('box-quick-del') || e.target.classList.contains('line-del-btn')) return;
+      if (e.target.classList.contains('box-quick-del') || e.target.classList.contains('line-del-btn') || e.target.classList.contains('diagram-quick-del')) return;
 
       const box = e.target.closest('.tree-box');
       
@@ -604,7 +619,7 @@
           activeAnchor.classList.remove('active');
           activeAnchor = null;
         }
-      } else if (!e.target.classList.contains('tree-box') && e.target.tagName !== 'line' && !e.target.classList.contains('line-del-btn')) {
+      } else if (!e.target.classList.contains('tree-box') && e.target.tagName !== 'line' && !e.target.classList.contains('line-del-btn') && !e.target.classList.contains('diagram-quick-del')) {
         clearSelection();
         if (activeAnchor) {
           activeAnchor.classList.remove('active');
@@ -843,7 +858,7 @@
     function saveData() { 
       let sec = getSecObj(currentSecId);
       if (sec) sec.content = document.getElementById("noteViewer").innerHTML;
-      localStorage.setItem("acc_struct_v15", JSON.stringify(chapters)); 
+      localStorage.setItem("acc_struct_v16", JSON.stringify(chapters)); 
     }
 
     window.onload = () => {
