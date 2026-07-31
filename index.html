@@ -13,7 +13,7 @@
     #sidebarOverlay.show { display: block; }
 
     /* 側邊欄 */
-    #sidebar { width: 280px; background: #ffffff; border-right: 1px solid #e0e0e0; display: flex; flex-direction: column; z-index: 200; transition: transform 0.25s ease; }
+    #sidebar { width: 290px; background: #ffffff; border-right: 1px solid #e0e0e0; display: flex; flex-direction: column; z-index: 200; transition: transform 0.25s ease; }
     .sidebar-header { padding: 14px 16px; font-weight: bold; font-size: 1rem; border-bottom: 1px solid #eee; background: #fcfcfc; color: #111; display: flex; justify-content: space-between; align-items: center; }
     .add-btn-group { padding: 8px 10px; display: flex; gap: 6px; border-bottom: 1px solid #eee; }
     
@@ -21,9 +21,9 @@
     .btn-action:hover { background: #0056b3; }
     
     .chapter-list { overflow-y: auto; flex: 1; padding: 8px; }
-    .chap-box { margin-bottom: 6px; }
-    .chap-header { display: flex; align-items: center; justify-content: space-between; font-weight: 600; font-size: 0.85rem; color: #444; padding: 6px 8px; background: #f1f3f5; border-radius: 4px; }
-    .sec-item { display: flex; align-items: center; justify-content: space-between; padding: 8px 10px; border-radius: 4px; cursor: pointer; font-size: 0.85rem; margin: 2px 0 2px 8px; background: #fff; border: 1px solid #f0f0f0; }
+    .chap-box { margin-bottom: 8px; }
+    .chap-header { display: flex; align-items: center; justify-content: space-between; font-weight: 700; font-size: 0.88rem; color: #222; padding: 8px 10px; background: #e9ecef; border-radius: 6px; }
+    .sec-item { display: flex; align-items: center; justify-content: space-between; padding: 8px 10px; border-radius: 4px; cursor: pointer; font-size: 0.85rem; margin: 4px 0 2px 10px; background: #fff; border: 1px solid #e0e0e0; }
     .sec-item.active { background: #007aff; color: white; font-weight: 600; border-color: #007aff; }
 
     .ctrl-btns { display: flex; gap: 2px; align-items: center; }
@@ -41,10 +41,10 @@
     .menu-toggle { display: none; font-size: 1.2rem; background: none; border: none; cursor: pointer; padding: 4px 8px; border-radius: 4px; }
     .menu-toggle:hover { background: #e9ecef; }
 
-    .doc-title { font-size: 1rem; font-weight: bold; color: #222; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .doc-title { font-size: 0.95rem; font-weight: bold; color: #222; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .mode-switch { display: flex; align-items: center; gap: 4px; font-size: 0.8rem; font-weight: 600; color: #444; cursor: pointer; user-select: none; flex-shrink: 0; }
 
-    /* 工具列 (支援橫向滑動) */
+    /* 工具列 (橫向滑動) */
     .toolbar { display: flex; gap: 8px; padding: 8px 12px; background: #f8f9fa; border-bottom: 1px solid #e0e0e0; align-items: center; overflow-x: auto; white-space: nowrap; -webkit-overflow-scrolling: touch; }
     .toolbar::-webkit-scrollbar { display: none; }
     
@@ -71,7 +71,7 @@
     /* 閱讀模式 */
     body.read-mode #noteViewer { pointer-events: none; }
     body.read-mode .sticky-header-container .toolbar { display: none; }
-    body.read-mode .diagram-toolbar, body.read-mode .anchor-point, body.read-mode .box-drag-handle { display: none !important; }
+    body.read-mode .diagram-toolbar, body.read-mode .anchor-point, body.read-mode .box-drag-handle, body.read-mode .box-quick-del { display: none !important; }
 
     /* 樹狀圖畫布 */
     .diagram-container { position: relative; width: 100%; min-height: 320px; margin: 14px 0; border: 2px dashed #aaa; border-radius: 8px; background: #fafafa; overflow: hidden; user-select: none; }
@@ -83,9 +83,15 @@
     .diagram-svg line { pointer-events: stroke; cursor: pointer; stroke-width: 3; stroke: #007aff; }
     .diagram-svg line.selected { stroke: #ff3b30 !important; stroke-width: 5 !important; }
     
+    /* 文字框樣式與一鍵刪除鍵 */
     .tree-box { position: absolute; min-width: 100px; background: #fff; border: 2px solid #007aff; border-radius: 6px; font-size: 0.82rem; text-align: center; z-index: 2; box-shadow: 0 2px 6px rgba(0,0,0,0.1); touch-action: none; cursor: move; }
     .tree-box.selected { border-color: #ff9500 !important; box-shadow: 0 0 0 3px rgba(255,149,0,0.4) !important; }
-    .box-drag-handle { background: #eef6ff; height: 14px; cursor: move; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom: 1px solid #e0e0e0; }
+    .box-drag-handle { background: #eef6ff; height: 16px; cursor: move; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom: 1px solid #e0e0e0; }
+    
+    /* 文字框右上角快速刪除按鈕 ✕ */
+    .box-quick-del { position: absolute; top: -8px; right: -8px; width: 18px; height: 18px; background: #ff3b30; color: white; border-radius: 50%; font-size: 11px; font-weight: bold; line-height: 18px; text-align: center; cursor: pointer; z-index: 10; box-shadow: 0 1px 3px rgba(0,0,0,0.3); border: 1px solid #fff; }
+    .box-quick-del:hover { background: #d9251d; transform: scale(1.1); }
+
     .box-content { padding: 6px 10px; outline: none; cursor: text; }
     
     .anchor-point { position: absolute; width: 14px; height: 14px; background: #007aff; border-radius: 50%; cursor: pointer; z-index: 3; border: 1px solid #fff; }
@@ -245,13 +251,15 @@
       { name: "每股盈餘 (EPS)", keywords: "每股盈餘 EPS 股利 股數", html: `EPS = <span class="frac-wrap"><span class="frac-num">本期淨利 - 特別股股利</span><span class="frac-den">普通股加權平均流通在外股數</span></span>` }
     ];
 
+    const ZH_NUMS = ["一", "二", "三", "四", "五", "六", "七", "八", "九", "十"];
+
     let savedRange = null; 
     let selectedElement = null;
     let activeAnchor = null;
     let isDraggingBox = null;
     let dragStartX = 0, dragStartY = 0, boxInitialLeft = 0, boxInitialTop = 0;
 
-    let chapters = JSON.parse(localStorage.getItem("acc_struct_v12")) || [
+    let chapters = JSON.parse(localStorage.getItem("acc_struct_v13")) || [
       { title: "會計基礎", sections: [{ id: "sec_1", title: "會計方程式", content: "會計基本恆等式：資產 = 負債 + 權益" }] },
       { title: "財務分析", sections: [{ id: "sec_2", title: "周轉天數與毛利率", content: "點擊左上角 ☰ 可展開章節切換。" }] }
     ];
@@ -399,7 +407,7 @@
       const html = `
         <div class="diagram-container" id="${id}" contenteditable="false">
           <div class="diagram-toolbar">
-            <button class="diagram-btn btn-del" onclick="deleteSelectedElement()">🗑️ 刪除</button>
+            <button class="diagram-btn btn-del" onclick="deleteSelectedElement()">🗑️ 刪除選取線條/物件</button>
           </div>
           <svg class="diagram-svg" id="svg_${id}">
             <defs>
@@ -427,6 +435,7 @@
       box.style.top = '20px';
 
       box.innerHTML = `
+        <div class="box-quick-del" title="刪除文字框" onclick="removeTreeBox('${boxId}')">✕</div>
         <div class="box-drag-handle"></div>
         <div class="box-content" contenteditable="true">文字</div>
         <div class="anchor-point anchor-top" data-id="${boxId}_top"></div>
@@ -439,6 +448,29 @@
       debouncedSave();
     }
 
+    /* 一鍵刪除文字框（連同關聯的連線） */
+    function removeTreeBox(boxId) {
+      const box = document.getElementById(boxId);
+      if (!box) return;
+      const container = box.closest('.diagram-container');
+      
+      // 刪除連到這個框的所有線
+      if (container) {
+        const lines = container.querySelectorAll('.diagram-svg line');
+        lines.forEach(line => {
+          const from = line.getAttribute('data-from');
+          const to = line.getAttribute('data-to');
+          if (from.startsWith(boxId) || to.startsWith(boxId)) {
+            line.remove();
+          }
+        });
+      }
+
+      box.remove();
+      if (selectedElement === box) selectedElement = null;
+      debouncedSave();
+    }
+
     function getPointerPos(e) {
       if (e.touches && e.touches.length > 0) {
         return { x: e.touches[0].clientX, y: e.touches[0].clientY };
@@ -446,24 +478,21 @@
       return { x: e.clientX, y: e.clientY };
     }
 
-    /* 📱 樹狀圖操作優化：點擊選取變橘框、移動、收起鍵盤 */
     function handleStart(e) {
       if (document.body.classList.contains('read-mode')) return;
+      if (e.target.classList.contains('box-quick-del')) return; // 點擊刪除鍵人不觸發拖曳
 
       const box = e.target.closest('.tree-box');
       
-      // 點擊文字框
       if (box && !e.target.classList.contains('anchor-point')) {
         clearSelection();
         selectedElement = box;
-        box.classList.add('selected'); // 變橘色框
+        box.classList.add('selected');
 
-        // 如果點擊的是邊框或拖曳區（而非內部正在打字），收起手機鍵盤
         if (!e.target.classList.contains('box-content')) {
           if (document.activeElement) document.activeElement.blur();
         }
 
-        // 全框皆可拖曳
         isDraggingBox = box;
         const pos = getPointerPos(e);
         dragStartX = pos.x;
@@ -472,7 +501,6 @@
         boxInitialTop = box.offsetTop;
       }
 
-      // 點擊連線選取
       if (e.target.tagName === 'line') {
         e.stopPropagation();
         clearSelection();
@@ -580,29 +608,32 @@
 
     function deleteSelectedElement() {
       if (selectedElement) {
-        selectedElement.remove();
-        selectedElement = null;
+        if (selectedElement.classList.contains('tree-box')) {
+          removeTreeBox(selectedElement.id);
+        } else {
+          selectedElement.remove();
+          selectedElement = null;
+        }
         document.querySelectorAll('.diagram-container').forEach(c => updateContainerLines(c));
         debouncedSave();
       } else {
-        alert("請先點選要刪除的文字框或連線！");
+        alert("請先點選要刪除的連線！(文字框右上角有「✕」可直接刪除)");
       }
     }
 
-    /* 側邊欄與資料保存 */
+    /* 📌 完整章節名稱顯示與側邊欄渲染 */
     function renderSidebar() {
       const list = document.getElementById("chapterList");
       list.innerHTML = "";
-      const zhNums = ["一", "二", "三", "四", "五", "六", "七", "八", "九", "十"];
 
       chapters.forEach((chap, cIdx) => {
         const cBox = document.createElement("div");
         cBox.className = "chap-box";
-        const chapNumText = `第${zhNums[cIdx] || (cIdx + 1)}章`;
+        const chapTitleFull = `第${ZH_NUMS[cIdx] || (cIdx + 1)}章 ${chap.title}`;
         
         cBox.innerHTML = `
           <div class="chap-header">
-            <span>${chapNumText} ${chap.title}</span>
+            <span>${chapTitleFull}</span>
             <div class="ctrl-btns">
               <button class="micro-btn" onclick="moveChap(${cIdx}, -1)">▲</button>
               <button class="micro-btn" onclick="moveChap(${cIdx}, 1)">▼</button>
@@ -612,18 +643,18 @@
         `;
 
         chap.sections.forEach((sec, sIdx) => {
-          const secNumText = `${cIdx + 1}.${sIdx + 1}`;
+          const secTitleFull = `${cIdx + 1}.${sIdx + 1} ${sec.title}`;
           const item = document.createElement("div");
           item.className = `sec-item ${sec.id === currentSecId ? 'active' : ''}`;
           item.onclick = (e) => {
             if(!e.target.classList.contains('micro-btn')) {
-              loadSec(sec.id, `${secNumText} ${sec.title}`);
+              loadSec(sec.id, `${chapTitleFull} - ${secTitleFull}`);
               closeSidebar();
             }
           };
 
           item.innerHTML = `
-            <span>${secNumText} ${sec.title}</span>
+            <span>${secTitleFull}</span>
             <div class="ctrl-btns">
               <button class="micro-btn" onclick="moveSec(${cIdx}, ${sIdx}, -1)">▲</button>
               <button class="micro-btn" onclick="moveSec(${cIdx}, ${sIdx}, 1)">▼</button>
@@ -645,6 +676,7 @@
       chapters[idx] = chapters[idx + dir];
       chapters[idx + dir] = temp;
       renderSidebar();
+      refreshCurrentTitle();
     }
 
     function delChap(idx) {
@@ -661,6 +693,7 @@
       secs[sIdx] = secs[sIdx + dir];
       secs[sIdx + dir] = temp;
       renderSidebar();
+      refreshCurrentTitle();
     }
 
     function delSec(cIdx, sIdx) {
@@ -670,9 +703,21 @@
       }
     }
 
-    function loadSec(id, title) {
+    function refreshCurrentTitle() {
+      chapters.forEach((c, cIdx) => {
+        c.sections.forEach((s, sIdx) => {
+          if (s.id === currentSecId) {
+            const chapTitleFull = `第${ZH_NUMS[cIdx] || (cIdx + 1)}章 ${c.title}`;
+            const secTitleFull = `${cIdx + 1}.${sIdx + 1} ${s.title}`;
+            document.getElementById("currentTitle").innerText = `${chapTitleFull} - ${secTitleFull}`;
+          }
+        });
+      });
+    }
+
+    function loadSec(id, fullDisplayTitle) {
       currentSecId = id;
-      document.getElementById("currentTitle").innerText = title;
+      document.getElementById("currentTitle").innerText = fullDisplayTitle;
       let sec = getSecObj(id);
       document.getElementById("noteViewer").innerHTML = sec ? sec.content : "";
       
@@ -690,14 +735,6 @@
       return null;
     }
 
-    function saveCurrentNote() {
-      let sec = getSecObj(currentSecId);
-      if (sec) {
-        sec.content = document.getElementById("noteViewer").innerHTML;
-        saveData();
-      }
-    }
-
     function toggleReadMode(isReadMode) {
       document.body.classList.toggle('read-mode', isReadMode);
       document.getElementById('noteViewer').setAttribute('contenteditable', !isReadMode);
@@ -713,7 +750,9 @@
         selectGroup.style.display = "block";
         const select = document.getElementById("chapterSelect");
         select.innerHTML = "";
-        chapters.forEach((c, idx) => { select.innerHTML += `<option value="${idx}">第${idx+1}章 ${c.title}</option>`; });
+        chapters.forEach((c, idx) => { 
+          select.innerHTML += `<option value="${idx}">第${ZH_NUMS[idx] || (idx+1)}章 ${c.title}</option>`; 
+        });
       }
       document.getElementById("modalInput").value = "";
       modal.style.display = "flex";
@@ -727,26 +766,29 @@
       if (!val) return;
       if (modalType === 'chapter') {
         chapters.push({ title: val, sections: [] });
+        renderSidebar();
       } else {
-        const chIdx = document.getElementById("chapterSelect").value;
+        const chIdx = parseInt(document.getElementById("chapterSelect").value);
         const newSecId = "sec_" + Date.now();
         chapters[chIdx].sections.push({ id: newSecId, title: val, content: "點擊開始記錄..." });
-        currentSecId = newSecId;
+        
+        const chapTitleFull = `第${ZH_NUMS[chIdx] || (chIdx + 1)}章 ${chapters[chIdx].title}`;
+        const secTitleFull = `${chIdx + 1}.${chapters[chIdx].sections.length} ${val}`;
+        
+        loadSec(newSecId, `${chapTitleFull} - ${secTitleFull}`);
       }
       closeModal();
-      renderSidebar();
-      loadSec(currentSecId, val);
     }
 
     function saveData() { 
       let sec = getSecObj(currentSecId);
       if (sec) sec.content = document.getElementById("noteViewer").innerHTML;
-      localStorage.setItem("acc_struct_v12", JSON.stringify(chapters)); 
+      localStorage.setItem("acc_struct_v13", JSON.stringify(chapters)); 
     }
 
     window.onload = () => {
       renderSidebar();
-      loadSec("sec_2", "2.1 周轉天數與毛利率");
+      refreshCurrentTitle();
     };
   </script>
 </body>
