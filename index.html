@@ -2,61 +2,67 @@
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>會計學全功能筆記系統</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; display: flex; height: 100vh; background: #f8f9fa; color: #333; overflow: hidden; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; display: flex; height: 100vh; background: #f8f9fa; color: #333; overflow: hidden; position: relative; }
     
+    /* 側邊欄 Overlay 遮罩 (手機版用) */
+    #sidebarOverlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.4); z-index: 90; display: none; }
+    #sidebarOverlay.show { display: block; }
+
     /* 側邊欄 */
-    #sidebar { width: 280px; background: #ffffff; border-right: 1px solid #e0e0e0; display: flex; flex-direction: column; z-index: 10; }
-    .sidebar-header { padding: 14px 16px; font-weight: bold; font-size: 1rem; border-bottom: 1px solid #eee; background: #fcfcfc; color: #111; }
+    #sidebar { width: 280px; background: #ffffff; border-right: 1px solid #e0e0e0; display: flex; flex-direction: column; z-index: 100; transition: transform 0.25s ease; }
+    .sidebar-header { padding: 14px 16px; font-weight: bold; font-size: 1rem; border-bottom: 1px solid #eee; background: #fcfcfc; color: #111; display: flex; justify-content: space-between; align-items: center; }
     .add-btn-group { padding: 8px 10px; display: flex; gap: 6px; border-bottom: 1px solid #eee; }
     
-    .btn-action { flex: 1; padding: 8px 10px; font-size: 0.8rem; background: #007aff; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; }
+    .btn-action { flex: 1; padding: 8px 10px; font-size: 0.8rem; background: #007aff; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; text-align: center; }
     .btn-action:hover { background: #0056b3; }
     
     .chapter-list { overflow-y: auto; flex: 1; padding: 8px; }
     .chap-box { margin-bottom: 6px; }
     .chap-header { display: flex; align-items: center; justify-content: space-between; font-weight: 600; font-size: 0.85rem; color: #444; padding: 6px 8px; background: #f1f3f5; border-radius: 4px; }
-    .sec-item { display: flex; align-items: center; justify-content: space-between; padding: 6px 8px; border-radius: 4px; cursor: pointer; font-size: 0.82rem; margin: 2px 0 2px 8px; background: #fff; border: 1px solid #f0f0f0; }
+    .sec-item { display: flex; align-items: center; justify-content: space-between; padding: 8px 10px; border-radius: 4px; cursor: pointer; font-size: 0.85rem; margin: 2px 0 2px 8px; background: #fff; border: 1px solid #f0f0f0; }
     .sec-item.active { background: #007aff; color: white; font-weight: 600; border-color: #007aff; }
 
     .ctrl-btns { display: flex; gap: 2px; align-items: center; }
-    .micro-btn { background: none; border: none; font-size: 0.65rem; color: #666; cursor: pointer; padding: 2px 4px; border-radius: 3px; }
+    .micro-btn { background: none; border: none; font-size: 0.75rem; color: #666; cursor: pointer; padding: 2px 6px; border-radius: 3px; }
     .micro-btn:hover { background: rgba(0,0,0,0.1); color: #000; }
 
     /* 主區域 */
-    #main { flex: 1; display: flex; flex-direction: column; height: 100vh; overflow: hidden; background: #fff; }
-    .top-bar { padding: 12px 20px; border-bottom: 1px solid #e0e0e0; display: flex; align-items: center; justify-content: space-between; background: #fafafa; }
-    .doc-title { font-size: 1.1rem; font-weight: bold; color: #222; }
-    
-    .mode-switch { display: flex; align-items: center; gap: 6px; font-size: 0.85rem; font-weight: 600; color: #444; cursor: pointer; user-select: none; }
+    #main { flex: 1; display: flex; flex-direction: column; height: 100vh; overflow: hidden; background: #fff; width: 100%; }
+    .top-bar { padding: 10px 14px; border-bottom: 1px solid #e0e0e0; display: flex; align-items: center; justify-content: space-between; background: #fafafa; gap: 10px; }
+    .top-bar-left { display: flex; align-items: center; gap: 10px; min-width: 0; }
+    .menu-toggle { display: none; font-size: 1.2rem; background: none; border: none; cursor: pointer; padding: 4px 8px; border-radius: 4px; }
+    .menu-toggle:hover { background: #e9ecef; }
 
-    /* 工具列 */
-    .toolbar { display: flex; gap: 8px; padding: 10px 20px; background: #f8f9fa; border-bottom: 1px solid #e0e0e0; align-items: center; flex-wrap: wrap; }
-    .tool-btn { padding: 6px 12px; background: #fff; border: 1px solid #ced4da; border-radius: 6px; font-size: 0.82rem; cursor: pointer; font-weight: 500; display: flex; align-items: center; gap: 4px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+    .doc-title { font-size: 1rem; font-weight: bold; color: #222; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .mode-switch { display: flex; align-items: center; gap: 4px; font-size: 0.8rem; font-weight: 600; color: #444; cursor: pointer; user-select: none; flex-shrink: 0; }
+
+    /* 工具列 (支援手機橫向滑動) */
+    .toolbar { display: flex; gap: 8px; padding: 8px 12px; background: #f8f9fa; border-bottom: 1px solid #e0e0e0; align-items: center; overflow-x: auto; white-space: nowrap; -webkit-overflow-scrolling: touch; }
+    .toolbar::-webkit-scrollbar { display: none; }
+    
+    .tool-btn { padding: 6px 10px; background: #fff; border: 1px solid #ced4da; border-radius: 6px; font-size: 0.8rem; cursor: pointer; font-weight: 500; display: inline-flex; align-items: center; gap: 4px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); flex-shrink: 0; }
     .tool-btn:hover { background: #e9ecef; }
     .tool-btn.btn-primary { background: #007aff; color: white; border-color: #007aff; font-weight: 600; }
-    .tool-btn.btn-primary:hover { background: #0056b3; }
     .tool-btn.btn-hl { background: #fff9db; border-color: #fcc419; color: #856404; font-weight: 600; }
-    .tool-btn.btn-hl:hover { background: #fff3bf; }
 
-    .color-group { display: flex; align-items: center; gap: 6px; border-left: 1px solid #ddd; padding-left: 10px; margin-left: 4px; }
-    .color-btn { width: 22px; height: 22px; border-radius: 50%; border: 2px solid #ccc; cursor: pointer; }
-    .color-btn:hover { transform: scale(1.1); }
+    .color-group { display: inline-flex; align-items: center; gap: 6px; border-left: 1px solid #ddd; padding-left: 8px; margin-left: 2px; flex-shrink: 0; }
+    .color-btn { width: 22px; height: 22px; border-radius: 50%; border: 2px solid #ccc; cursor: pointer; flex-shrink: 0; }
     .color-black { background: #000000; }
     .color-red { background: #e63946; }
     .color-blue { background: rgb(29, 93, 221); }
 
     /* 筆記區域 */
-    .editor-wrapper { flex: 1; padding: 25px 30px; overflow-y: auto; position: relative; }
-    #noteViewer { min-height: 100%; font-size: 1rem; line-height: 2; color: #2b2b2b; outline: none; padding-bottom: 150px; }
+    .editor-wrapper { flex: 1; padding: 16px 18px; overflow-y: auto; position: relative; }
+    #noteViewer { min-height: 100%; font-size: 0.98rem; line-height: 1.8; color: #2b2b2b; outline: none; padding-bottom: 120px; }
     
-    /* 分數結構樣式 */
-    .frac-wrap { display: inline-flex; flex-direction: column; vertical-align: middle; text-align: center; font-size: 0.9em; padding: 0 4px; line-height: 1.2; }
-    .frac-num { border-bottom: 1.5px solid #333; padding: 1px 4px; }
-    .frac-den { padding: 1px 4px; }
+    /* 分數結構 */
+    .frac-wrap { display: inline-flex; flex-direction: column; vertical-align: middle; text-align: center; font-size: 0.9em; padding: 0 3px; line-height: 1.1; }
+    .frac-num { border-bottom: 1.5px solid #333; padding: 1px 2px; }
+    .frac-den { padding: 1px 2px; }
 
     /* 閱讀模式 */
     body.read-mode #noteViewer { pointer-events: none; }
@@ -64,49 +70,61 @@
     body.read-mode .diagram-toolbar, body.read-mode .anchor-point, body.read-mode .box-drag-handle { display: none !important; }
 
     /* 樹狀圖畫布 */
-    .diagram-container { position: relative; width: 100%; min-height: 380px; margin: 18px 0; border: 2px dashed #aaa; border-radius: 8px; background: #fafafa; overflow: hidden; user-select: none; }
-    .diagram-toolbar { position: absolute; top: 8px; right: 8px; z-index: 10; display: flex; gap: 6px; }
-    .diagram-btn { padding: 4px 8px; font-size: 0.75rem; background: #ffffff; border: 1px solid #aaa; border-radius: 4px; cursor: pointer; font-weight: 600; }
+    .diagram-container { position: relative; width: 100%; min-height: 320px; margin: 14px 0; border: 2px dashed #aaa; border-radius: 8px; background: #fafafa; overflow: hidden; user-select: none; }
+    .diagram-toolbar { position: absolute; top: 6px; right: 6px; z-index: 10; display: flex; gap: 4px; }
+    .diagram-btn { padding: 4px 6px; font-size: 0.72rem; background: #ffffff; border: 1px solid #aaa; border-radius: 4px; cursor: pointer; font-weight: 600; }
     .diagram-btn.btn-del { color: #d9534f; border-color: #d9534f; }
     
     .diagram-svg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; }
     .diagram-svg line { pointer-events: stroke; cursor: pointer; stroke-width: 3; stroke: #007aff; }
     .diagram-svg line.selected { stroke: #ff3b30 !important; stroke-width: 5 !important; }
     
-    .tree-box { position: absolute; min-width: 120px; background: #fff; border: 2px solid #007aff; border-radius: 6px; font-size: 0.88rem; text-align: center; z-index: 2; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+    .tree-box { position: absolute; min-width: 100px; background: #fff; border: 2px solid #007aff; border-radius: 6px; font-size: 0.82rem; text-align: center; z-index: 2; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
     .tree-box.selected { border-color: #ff9500 !important; box-shadow: 0 0 0 3px rgba(255,149,0,0.4) !important; }
-    .box-drag-handle { background: #eef6ff; height: 18px; cursor: move; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom: 1px solid #e0e0e0; }
-    .box-content { padding: 8px 12px; outline: none; }
+    .box-drag-handle { background: #eef6ff; height: 16px; cursor: move; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom: 1px solid #e0e0e0; }
+    .box-content { padding: 6px 10px; outline: none; }
     
-    .anchor-point { position: absolute; width: 12px; height: 12px; background: #007aff; border-radius: 50%; cursor: pointer; z-index: 3; border: 1px solid #fff; }
-    .anchor-point:hover, .anchor-point.active { transform: scale(1.5); background: #ff9500 !important; }
-    .anchor-top { top: -6px; left: 50%; transform: translateX(-50%); }
-    .anchor-bottom { bottom: -6px; left: 50%; transform: translateX(-50%); }
-    .anchor-left { left: -6px; top: 50%; transform: translateY(-50%); }
-    .anchor-right { right: -6px; top: 50%; transform: translateY(-50%); }
+    .anchor-point { position: absolute; width: 14px; height: 14px; background: #007aff; border-radius: 50%; cursor: pointer; z-index: 3; border: 1px solid #fff; }
+    .anchor-point:hover, .anchor-point.active { transform: scale(1.4); background: #ff9500 !important; }
+    .anchor-top { top: -7px; left: 50%; transform: translateX(-50%); }
+    .anchor-bottom { bottom: -7px; left: 50%; transform: translateX(-50%); }
+    .anchor-left { left: -7px; top: 50%; transform: translateY(-50%); }
+    .anchor-right { right: -7px; top: 50%; transform: translateY(-50%); }
 
-    /* Modal 通用彈窗 */
-    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.3); display: none; justify-content: center; align-items: center; z-index: 100; }
-    .modal-card { background: white; padding: 22px; border-radius: 10px; width: 480px; box-shadow: 0 4px 15px rgba(0,0,0,0.15); max-height: 85vh; display: flex; flex-direction: column; }
-    .modal-card h3 { margin-bottom: 12px; font-size: 1rem; }
-    .modal-card input { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 6px; margin-bottom: 10px; outline: none; font-size: 0.9rem; }
-    .modal-btns { display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px; }
+    /* Modal 通用彈窗 (手機版自適應) */
+    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); display: none; justify-content: center; align-items: center; z-index: 200; padding: 15px; }
+    .modal-card { background: white; padding: 18px; border-radius: 12px; width: 100%; max-width: 450px; box-shadow: 0 4px 20px rgba(0,0,0,0.2); max-height: 80vh; display: flex; flex-direction: column; }
+    .modal-card h3 { margin-bottom: 10px; font-size: 0.95rem; }
+    .modal-card input { width: 100%; padding: 8px 10px; border: 1px solid #ccc; border-radius: 6px; margin-bottom: 10px; outline: none; font-size: 0.88rem; }
+    .modal-btns { display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px; }
 
     /* 公式搜尋選單 */
-    .formula-list { overflow-y: auto; flex: 1; border: 1px solid #eee; border-radius: 6px; max-height: 320px; }
-    .formula-item { padding: 10px 12px; border-bottom: 1px solid #f0f0f0; display: flex; justify-content: space-between; align-items: center; }
+    .formula-list { overflow-y: auto; flex: 1; border: 1px solid #eee; border-radius: 6px; max-height: 280px; }
+    .formula-item { padding: 8px 10px; border-bottom: 1px solid #f0f0f0; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
     .formula-item:hover { background: #eef6ff; }
-    .formula-title { font-weight: bold; font-size: 0.88rem; color: #111; }
-    .formula-preview { font-size: 0.82rem; color: #555; margin-top: 4px; }
-    .btn-insert-sm { background: #007aff; color: white; border: none; padding: 5px 12px; border-radius: 4px; font-size: 0.78rem; cursor: pointer; font-weight: 600; }
-    .btn-insert-sm:hover { background: #0056b3; }
+    .formula-title { font-weight: bold; font-size: 0.82rem; color: #111; }
+    .formula-preview { font-size: 0.78rem; color: #555; margin-top: 2px; }
+    .btn-insert-sm { background: #007aff; color: white; border: none; padding: 4px 10px; border-radius: 4px; font-size: 0.75rem; cursor: pointer; font-weight: 600; flex-shrink: 0; }
+
+    /* 📱 手機螢幕 Responsive 媒體查詢 */
+    @media (max-width: 768px) {
+      .menu-toggle { display: block; }
+      #sidebar { position: fixed; top: 0; left: 0; height: 100%; transform: translateX(-100%); }
+      #sidebar.open { transform: translateX(0); }
+    }
   </style>
 </head>
 <body>
 
+  <!-- 手機版側邊欄背景遮罩 -->
+  <div id="sidebarOverlay" onclick="closeSidebar()"></div>
+
   <!-- 左側選單 -->
   <div id="sidebar">
-    <div class="sidebar-header">📚 會計學全功能筆記</div>
+    <div class="sidebar-header">
+      <span>📚 會計學全功能筆記</span>
+      <button class="micro-btn" style="font-size:1rem;" onclick="closeSidebar()">✕</button>
+    </div>
     <div class="add-btn-group">
       <button class="btn-action" onclick="openModal('chapter')">➕ 新增章節</button>
       <button class="btn-action" onclick="openModal('section')">➕ 新增小節</button>
@@ -117,32 +135,31 @@
   <!-- 主區域 -->
   <div id="main">
     <div class="top-bar">
-      <div class="doc-title" id="currentTitle">選取筆記</div>
+      <div class="top-bar-left">
+        <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+        <div class="doc-title" id="currentTitle">選取筆記</div>
+      </div>
       <label class="mode-switch">
         <input type="checkbox" id="readModeToggle" onchange="toggleReadMode(this.checked)">
         📖 閱讀模式
       </label>
     </div>
 
-    <!-- 工具列 -->
+    <!-- 工具列 (手機滑動) -->
     <div class="toolbar">
-      <button class="tool-btn btn-primary" onclick="openFormulaSearchModal()">⚡ 搜尋會計常用公式 (輸入/)</button>
-      <button class="tool-btn" onclick="openFracModal()">➕ 自訂分數</button>
-      
-      <!-- 🖍️ 修復：改為按鈕觸發，點擊才劃螢光筆 -->
-      <button class="tool-btn btn-hl" onmousedown="event.preventDefault(); applyHighlight('#ffec99');">🖍️ 劃螢光筆</button>
+      <button class="tool-btn btn-primary" onclick="openFormulaSearchModal()">⚡ 公式 (輸入/)</button>
+      <button class="tool-btn" onclick="openFracModal()">➕ 分數</button>
+      <button class="tool-btn btn-hl" onmousedown="event.preventDefault(); applyHighlight('#ffec99');">🖍️ 螢光筆</button>
       <button class="tool-btn" onmousedown="event.preventDefault(); removeHighlight();">🧹 清除格式</button>
 
-      <!-- 🎨 修復：顏色切換按鈕 -->
       <div class="color-group">
-        <span style="font-size:0.8rem; color:#666;">文字顏色：</span>
         <div class="color-btn color-black" title="黑色" onmousedown="event.preventDefault(); applyTextColor('#000000');"></div>
         <div class="color-btn color-red" title="紅色" onmousedown="event.preventDefault(); applyTextColor('#e63946');"></div>
         <div class="color-btn color-blue" title="藍色" onmousedown="event.preventDefault(); applyTextColor('rgb(29, 93, 221)');"></div>
       </div>
 
       <button class="tool-btn" style="font-weight:900;" onmousedown="event.preventDefault(); toggleBold();">B</button>
-      <button class="tool-btn" onclick="createDiagramContainer()">🌳 建立樹狀圖畫布</button>
+      <button class="tool-btn" onclick="createDiagramContainer()">🌳 樹狀畫布</button>
       <button class="tool-btn" onclick="addBoxToActiveDiagram()">🔳 新增文字框</button>
     </div>
 
@@ -156,7 +173,7 @@
   <div class="modal-overlay" id="formulaModal">
     <div class="modal-card">
       <h3>🔍 會計常用公式庫</h3>
-      <input type="text" id="formulaSearchInput" placeholder="輸入關鍵字 (如：毛利、天數、周轉率、隱含、ROA)..." oninput="filterFormulas()">
+      <input type="text" id="formulaSearchInput" placeholder="輸入關鍵字 (如：毛利、天數、周轉率)..." oninput="filterFormulas()">
       <div class="formula-list" id="formulaListContainer"></div>
       <div class="modal-btns">
         <button class="tool-btn" onclick="closeFormulaModal()">關閉</button>
@@ -196,7 +213,18 @@
   </div>
 
   <script>
-    /* 📚 完整會計常用公式庫 */
+    /* 📱 手機選單控制 */
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('open');
+      document.getElementById('sidebarOverlay').classList.toggle('show');
+    }
+
+    function closeSidebar() {
+      document.getElementById('sidebar').classList.remove('open');
+      document.getElementById('sidebarOverlay').classList.remove('show');
+    }
+
+    /* 📚 會計常用公式庫 */
     const ACCOUNTING_FORMULAS = [
       { name: "銷貨毛利率", keywords: "毛利 毛利率 銷貨毛利 銷貨收入", html: `毛利率 = <span class="frac-wrap"><span class="frac-num">銷貨毛利</span><span class="frac-den">銷貨收入淨額</span></span> × 100%` },
       { name: "應收帳款周轉天數", keywords: "應收帳款 周轉天數 平均收現期間 收款天數 365", html: `應收帳款周轉天數 = <span class="frac-wrap"><span class="frac-num">365</span><span class="frac-den">應收帳款周轉率</span></span>` },
@@ -219,9 +247,9 @@
     let isDraggingBox = null;
     let dragStartX = 0, dragStartY = 0, boxInitialLeft = 0, boxInitialTop = 0;
 
-    let chapters = JSON.parse(localStorage.getItem("acc_struct_v11")) || [
+    let chapters = JSON.parse(localStorage.getItem("acc_struct_v12")) || [
       { title: "會計基礎", sections: [{ id: "sec_1", title: "會計方程式", content: "會計基本恆等式：資產 = 負債 + 權益" }] },
-      { title: "財務分析", sections: [{ id: "sec_2", title: "周轉天數與毛利率", content: "框選文字後點擊「🖍️ 劃螢光筆」或色彩圓點試試看！" }] }
+      { title: "財務分析", sections: [{ id: "sec_2", title: "周轉天數與毛利率", content: "點擊左上角 ☰ 可展開章節切換。" }] }
     ];
 
     let currentSecId = "sec_2";
@@ -233,57 +261,48 @@
       saveTimeout = setTimeout(() => { saveCurrentNote(); }, 400);
     }
 
-    /* 🖍️ 修復：螢光筆功能 (框選後按鈕觸發 + 斷開繼承) */
+    /* 🖍️ 螢光筆功能 */
     function applyHighlight(bgColor) {
       const sel = window.getSelection();
-      if (!sel.rangeCount || sel.isCollapsed) return alert("請先用滑鼠框選要劃螢光筆的文字！");
-      
+      if (!sel.rangeCount || sel.isCollapsed) return alert("請先用滑鼠/手指選取文字！");
       document.execCommand('hiliteColor', false, bgColor);
       clearStyleInherit();
       debouncedSave();
     }
 
-    /* 🧹 修復：清除背景螢光筆與文字顏色 */
+    /* 🧹 清除格式 */
     function removeHighlight() {
       const sel = window.getSelection();
-      if (!sel.rangeCount || sel.isCollapsed) return alert("請先用滑鼠框選要清除格式的文字！");
-      
+      if (!sel.rangeCount || sel.isCollapsed) return alert("請先用滑鼠/手指選取文字！");
       document.execCommand('removeFormat', false, null);
       document.execCommand('hiliteColor', false, 'transparent');
       debouncedSave();
     }
 
-    /* 🎨 修復：文字顏色改為按鈕完美觸發 */
+    /* 🎨 文字顏色 */
     function applyTextColor(color) {
       const sel = window.getSelection();
-      if (!sel.rangeCount || sel.isCollapsed) return alert("請先用滑鼠框選要變色的文字！");
-      
+      if (!sel.rangeCount || sel.isCollapsed) return alert("請先用滑鼠/手指選取文字！");
       document.execCommand('foreColor', false, color);
       clearStyleInherit();
       debouncedSave();
     }
 
-    /* 粗體 */
     function toggleBold() {
       document.execCommand('bold', false, null);
       debouncedSave();
     }
 
-    /* 核心秘訣：在選區尾端插入乾淨的空白，確保「下一個打的字」不會繼續帶有螢光/顏色 */
     function clearStyleInherit() {
       const sel = window.getSelection();
       if (sel.rangeCount > 0) {
         const range = sel.getRangeAt(0);
-        range.collapse(false); // 將游標移到選區末端
-        
-        // 插入零寬度不列印字元或乾淨空白，並重置當前樣式
+        range.collapse(false);
         const span = document.createElement('span');
-        span.innerHTML = '&#8203;'; // 零寬度空格
+        span.innerHTML = '&#8203;';
         span.style.backgroundColor = 'transparent';
         span.style.color = '#333333';
         range.insertNode(span);
-        
-        // 將游標放置於新節點後
         range.setStartAfter(span);
         range.setEndAfter(span);
         sel.removeAllRanges();
@@ -291,7 +310,6 @@
       }
     }
 
-    /* 快捷鍵 / 喚醒公式搜尋 */
     function handleEditorKeyUp(e) {
       if (e.key === '/') {
         saveSelection();
@@ -301,9 +319,7 @@
 
     function saveSelection() {
       const sel = window.getSelection();
-      if (sel.rangeCount > 0) {
-        savedRange = sel.getRangeAt(0);
-      }
+      if (sel.rangeCount > 0) savedRange = sel.getRangeAt(0);
     }
 
     function restoreSelection() {
@@ -314,7 +330,6 @@
       }
     }
 
-    /* 公式 Modal 邏輯 */
     function openFormulaSearchModal() {
       saveSelection();
       document.getElementById("formulaSearchInput").value = "";
@@ -323,9 +338,7 @@
       document.getElementById("formulaSearchInput").focus();
     }
 
-    function closeFormulaModal() {
-      document.getElementById("formulaModal").style.display = "none";
-    }
+    function closeFormulaModal() { document.getElementById("formulaModal").style.display = "none"; }
 
     function filterFormulas() {
       const keyword = document.getElementById("formulaSearchInput").value.toLowerCase().trim();
@@ -349,7 +362,7 @@
             <div class="formula-title">${f.name}</div>
             <div class="formula-preview">${f.html}</div>
           </div>
-          <button class="btn-insert-sm" onclick="insertFormulaByIndex(${idx})">帶入公式</button>
+          <button class="btn-insert-sm" onclick="insertFormulaByIndex(${idx})">帶入</button>
         `;
         container.appendChild(item);
       });
@@ -358,7 +371,6 @@
     function insertFormulaByIndex(idx) {
       const formulaHtml = ACCOUNTING_FORMULAS[idx].html;
       closeFormulaModal();
-      
       const viewer = document.getElementById("noteViewer");
       viewer.focus();
       restoreSelection();
@@ -377,7 +389,6 @@
       debouncedSave();
     }
 
-    /* 自訂分數 */
     function openFracModal() {
       saveSelection();
       document.getElementById("fracNumInput").value = "";
@@ -406,7 +417,7 @@
       const html = `
         <div class="diagram-container" id="${id}" contenteditable="false">
           <div class="diagram-toolbar">
-            <button class="diagram-btn btn-del" onclick="deleteSelectedElement()">🗑️ 刪除選取框/連線</button>
+            <button class="diagram-btn btn-del" onclick="deleteSelectedElement()">🗑️ 刪除</button>
           </div>
           <svg class="diagram-svg" id="svg_${id}">
             <defs>
@@ -423,19 +434,19 @@
 
     function addBoxToActiveDiagram() {
       const containers = document.querySelectorAll('.diagram-container');
-      if (containers.length === 0) return alert("請先點擊「🌳 建立樹狀圖畫布」！");
+      if (containers.length === 0) return alert("請先點擊「🌳 樹狀畫布」！");
       const target = containers[containers.length - 1];
       const boxId = "box_" + Date.now();
       
       const box = document.createElement('div');
       box.className = 'tree-box';
       box.id = boxId;
-      box.style.left = '40px';
-      box.style.top = '40px';
+      box.style.left = '20px';
+      box.style.top = '20px';
 
       box.innerHTML = `
         <div class="box-drag-handle"></div>
-        <div class="box-content" contenteditable="true">雙擊改字</div>
+        <div class="box-content" contenteditable="true">文字</div>
         <div class="anchor-point anchor-top" data-id="${boxId}_top"></div>
         <div class="anchor-point anchor-bottom" data-id="${boxId}_bottom"></div>
         <div class="anchor-point anchor-left" data-id="${boxId}_left"></div>
@@ -446,16 +457,22 @@
       debouncedSave();
     }
 
-    /* 樹狀圖拖曳與點擊 */
-    document.addEventListener('mousedown', (e) => {
-      if (document.body.classList.contains('read-mode')) return;
+    /* 拖曳與連線 (支援觸控與鼠標) */
+    function getPointerPos(e) {
+      if (e.touches && e.touches.length > 0) {
+        return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+      }
+      return { x: e.clientX, y: e.clientY };
+    }
 
+    function handleStart(e) {
+      if (document.body.classList.contains('read-mode')) return;
       if (e.target.classList.contains('box-drag-handle')) {
-        e.preventDefault();
         const box = e.target.closest('.tree-box');
         isDraggingBox = box;
-        dragStartX = e.clientX;
-        dragStartY = e.clientY;
+        const pos = getPointerPos(e);
+        dragStartX = pos.x;
+        dragStartY = pos.y;
         boxInitialLeft = box.offsetLeft;
         boxInitialTop = box.offsetTop;
       }
@@ -473,26 +490,34 @@
         selectedElement = e.target;
         e.target.classList.add('selected');
       }
-    });
+    }
 
-    document.addEventListener('mousemove', (e) => {
+    function handleMove(e) {
       if (isDraggingBox) {
-        const dx = e.clientX - dragStartX;
-        const dy = e.clientY - dragStartY;
+        const pos = getPointerPos(e);
+        const dx = pos.x - dragStartX;
+        const dy = pos.y - dragStartY;
         isDraggingBox.style.left = (boxInitialLeft + dx) + 'px';
         isDraggingBox.style.top = (boxInitialTop + dy) + 'px';
-        
         const container = isDraggingBox.closest('.diagram-container');
         if (container) updateContainerLines(container);
       }
-    });
+    }
 
-    document.addEventListener('mouseup', () => {
+    function handleEnd() {
       if (isDraggingBox) {
         isDraggingBox = null;
         debouncedSave();
       }
-    });
+    }
+
+    document.addEventListener('mousedown', handleStart);
+    document.addEventListener('mousemove', handleMove);
+    document.addEventListener('mouseup', handleEnd);
+
+    document.addEventListener('touchstart', handleStart, {passive: false});
+    document.addEventListener('touchmove', handleMove, {passive: false});
+    document.addEventListener('touchend', handleEnd);
 
     document.addEventListener('click', (e) => {
       if (document.body.classList.contains('read-mode')) return;
@@ -523,7 +548,6 @@
     function connectAnchors(ancA, ancB, container) {
       const svg = container.querySelector('.diagram-svg');
       const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-      
       const idA = ancA.getAttribute('data-id');
       const idB = ancB.getAttribute('data-id');
 
@@ -543,14 +567,12 @@
       lines.forEach(line => {
         const fromId = line.getAttribute('data-from');
         const toId = line.getAttribute('data-to');
-
         const ancA = container.querySelector(`[data-id="${fromId}"]`);
         const ancB = container.querySelector(`[data-id="${toId}"]`);
 
         if (ancA && ancB) {
           const rA = ancA.getBoundingClientRect();
           const rB = ancB.getBoundingClientRect();
-
           line.setAttribute('x1', rA.left + rA.width / 2 - cRect.left);
           line.setAttribute('y1', rA.top + rA.height / 2 - cRect.top);
           line.setAttribute('x2', rB.left + rB.width / 2 - cRect.left);
@@ -573,11 +595,11 @@
         document.querySelectorAll('.diagram-container').forEach(c => updateContainerLines(c));
         debouncedSave();
       } else {
-        alert("請先點擊選取要刪除的「文字框」或「箭頭線條」！");
+        alert("請先點選要刪除的文字框或連線！");
       }
     }
 
-    /* 側邊欄與存檔 */
+    /* 側邊欄與資料管理 */
     function renderSidebar() {
       const list = document.getElementById("chapterList");
       list.innerHTML = "";
@@ -604,7 +626,10 @@
           const item = document.createElement("div");
           item.className = `sec-item ${sec.id === currentSecId ? 'active' : ''}`;
           item.onclick = (e) => {
-            if(!e.target.classList.contains('micro-btn')) loadSec(sec.id, `${secNumText} ${sec.title}`);
+            if(!e.target.classList.contains('micro-btn')) {
+              loadSec(sec.id, `${secNumText} ${sec.title}`);
+              closeSidebar(); // 手機選完自動關閉選單
+            }
           };
 
           item.innerHTML = `
@@ -723,7 +748,7 @@
       loadSec(currentSecId, val);
     }
 
-    function saveData() { localStorage.setItem("acc_struct_v11", JSON.stringify(chapters)); }
+    function saveData() { localStorage.setItem("acc_struct_v12", JSON.stringify(chapters)); }
 
     window.onload = () => {
       renderSidebar();
