@@ -75,13 +75,14 @@
 
     /* 樹狀圖畫布 */
     .diagram-container { position: relative; width: 100%; min-height: 320px; margin: 14px 0; border: 2px dashed #aaa; border-radius: 8px; background: #fafafa; overflow: hidden; user-select: none; }
-    .diagram-toolbar { position: absolute; top: 6px; right: 6px; z-index: 10; display: flex; gap: 4px; }
-    .diagram-btn { padding: 4px 6px; font-size: 0.72rem; background: #ffffff; border: 1px solid #aaa; border-radius: 4px; cursor: pointer; font-weight: 600; }
-    .diagram-btn.btn-del { color: #d9534f; border-color: #d9534f; }
+    .diagram-toolbar { position: absolute; top: 6px; right: 6px; z-index: 20; display: flex; gap: 4px; }
+    .diagram-btn { padding: 4px 8px; font-size: 0.75rem; background: #ffffff; border: 1px solid #aaa; border-radius: 4px; cursor: pointer; font-weight: 600; }
+    .diagram-btn.btn-del { color: #ffffff; background: #d9534f; border-color: #d9534f; }
+    .diagram-btn.btn-del:hover { background: #c9302c; }
     
-    .diagram-svg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; }
-    .diagram-svg line { pointer-events: stroke; cursor: pointer; stroke-width: 3; stroke: #007aff; }
-    .diagram-svg line.selected { stroke: #ff3b30 !important; stroke-width: 5 !important; }
+    .diagram-svg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
+    .diagram-svg line { pointer-events: stroke; cursor: pointer; stroke-width: 4; stroke: #007aff; }
+    .diagram-svg line.selected { stroke: #ff3b30 !important; stroke-width: 6 !important; }
     
     /* 文字框樣式與一鍵刪除鍵 */
     .tree-box { position: absolute; min-width: 100px; background: #fff; border: 2px solid #007aff; border-radius: 6px; font-size: 0.82rem; text-align: center; z-index: 2; box-shadow: 0 2px 6px rgba(0,0,0,0.1); touch-action: none; cursor: move; }
@@ -89,7 +90,7 @@
     .box-drag-handle { background: #eef6ff; height: 16px; cursor: move; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom: 1px solid #e0e0e0; }
     
     /* 文字框右上角快速刪除按鈕 ✕ */
-    .box-quick-del { position: absolute; top: -8px; right: -8px; width: 18px; height: 18px; background: #ff3b30; color: white; border-radius: 50%; font-size: 11px; font-weight: bold; line-height: 18px; text-align: center; cursor: pointer; z-index: 10; box-shadow: 0 1px 3px rgba(0,0,0,0.3); border: 1px solid #fff; }
+    .box-quick-del { position: absolute; top: -8px; right: -8px; width: 20px; height: 20px; background: #ff3b30; color: white; border-radius: 50%; font-size: 12px; font-weight: bold; line-height: 20px; text-align: center; cursor: pointer; z-index: 10; box-shadow: 0 1px 3px rgba(0,0,0,0.3); border: 1px solid #fff; }
     .box-quick-del:hover { background: #d9251d; transform: scale(1.1); }
 
     .box-content { padding: 6px 10px; outline: none; cursor: text; }
@@ -407,7 +408,7 @@
       const html = `
         <div class="diagram-container" id="${id}" contenteditable="false">
           <div class="diagram-toolbar">
-            <button class="diagram-btn btn-del" onclick="deleteSelectedElement()">🗑️ 刪除選取線條/物件</button>
+            <button class="diagram-btn btn-del" onclick="deleteSelectedElement(this)">🗑️ 刪除選取物件</button>
           </div>
           <svg class="diagram-svg" id="svg_${id}">
             <defs>
@@ -454,13 +455,12 @@
       if (!box) return;
       const container = box.closest('.diagram-container');
       
-      // 刪除連到這個框的所有線
       if (container) {
         const lines = container.querySelectorAll('.diagram-svg line');
         lines.forEach(line => {
           const from = line.getAttribute('data-from');
           const to = line.getAttribute('data-to');
-          if (from.startsWith(boxId) || to.startsWith(boxId)) {
+          if ((from && from.startsWith(boxId)) || (to && to.startsWith(boxId))) {
             line.remove();
           }
         });
@@ -480,7 +480,7 @@
 
     function handleStart(e) {
       if (document.body.classList.contains('read-mode')) return;
-      if (e.target.classList.contains('box-quick-del')) return; // 點擊刪除鍵人不觸發拖曳
+      if (e.target.classList.contains('box-quick-del')) return;
 
       const box = e.target.closest('.tree-box');
       
@@ -537,6 +537,16 @@
     document.addEventListener('touchmove', handleMove, {passive: false});
     document.addEventListener('touchend', handleEnd);
 
+    /* 💡 增加「雙擊連線」直接刪除功能 */
+    document.addEventListener('dblclick', (e) => {
+      if (e.target.tagName === 'line') {
+        e.stopPropagation();
+        e.target.remove();
+        selectedElement = null;
+        debouncedSave();
+      }
+    });
+
     document.addEventListener('click', (e) => {
       if (document.body.classList.contains('read-mode')) return;
 
@@ -555,7 +565,8 @@
           activeAnchor.classList.remove('active');
           activeAnchor = null;
         }
-      } else if (!e.target.classList.contains('diagram-btn')) {
+      } else if (!e.target.classList.contains('diagram-btn') && !e.target.closest('.tree-box') && e.target.tagName !== 'line') {
+        clearSelection();
         if (activeAnchor) {
           activeAnchor.classList.remove('active');
           activeAnchor = null;
@@ -606,7 +617,8 @@
       }
     }
 
-    function deleteSelectedElement() {
+    /* 刪除按鈕功能調優 */
+    function deleteSelectedElement(btn) {
       if (selectedElement) {
         if (selectedElement.classList.contains('tree-box')) {
           removeTreeBox(selectedElement.id);
@@ -614,10 +626,14 @@
           selectedElement.remove();
           selectedElement = null;
         }
-        document.querySelectorAll('.diagram-container').forEach(c => updateContainerLines(c));
+        const container = btn ? btn.closest('.diagram-container') : document;
+        if(container) {
+          const svg = container.querySelector('.diagram-svg');
+          if(svg) updateContainerLines(container);
+        }
         debouncedSave();
       } else {
-        alert("請先點選要刪除的連線！(文字框右上角有「✕」可直接刪除)");
+        alert("提示：請先點選「連線」或「文字框」使其變成選取狀態（文字框變橘框/線條變紅線），再點擊此刪除按鈕。\n\n💡 小撇步：連線也可以直接「雙擊(快點兩下)」來快速刪除！");
       }
     }
 
@@ -775,7 +791,7 @@
         const chapTitleFull = `第${ZH_NUMS[chIdx] || (chIdx + 1)}章 ${chapters[chIdx].title}`;
         const secTitleFull = `${chIdx + 1}.${chapters[chIdx].sections.length} ${val}`;
         
-        loadSec(newSecId, `${chapTitleFull} - ${secTitleFull}`);
+ loadSec(newSecId, `${chapTitleFull} - ${secTitleFull}`);
       }
       closeModal();
     }
