@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>會計學全功能筆記系統</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; display: flex; height: 100vh; background: #f8f9fa; color: #333; overflow: hidden; }
+    
+    /* 側邊欄 */
+    #sidebar { width: 280px; background: #ffffff; border-right: 1px solid #e0e0e0; display: flex; flex-direction: column; z-index: 10; }
+    .sidebar-header { padding: 14px 16px; font-weight: bold; font-size: 1rem; border-bottom: 1px solid #eee; background: #fcfcfc; color: #111; }
+    .add-btn-group { padding: 8px 10px; display: flex; gap: 6px; border-bottom: 1px solid #eee; }
+    
+    .btn-action { flex: 1; padding: 8px 10px; font-size: 0.8rem; background: #007aff; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; }
+    .btn-action:hover { background: #0056b3; }
+    
+    .chapter-list { overflow-y: auto; flex: 1; padding: 8px; }
+    .chap-box { margin-bottom: 6px; }
+    .chap-header { display: flex; align-items: center; justify-content: space-between; font-weight: 600; font-size: 0.85rem; color: #444; padding: 6px 8px; background: #f1f3f5; border-radius: 4px; }
+    .sec-item { display: flex; align-items: center; justify-content: space-between; padding: 6px 8px; border-radius: 4px; cursor: pointer; font-size: 0.82rem; margin: 2px 0 2px 8px; background: #fff; border: 1px solid #f0f0f0; }
+    .sec-item.active { background: #007aff; color: white; font-weight: 600; border-color: #007aff; }
+
+    .ctrl-btns { display: flex; gap: 2px; align-items: center; }
+    .micro-btn { background: none; border: none; font-size: 0.65rem; color: #666; cursor: pointer; padding: 2px 4px; border-radius: 3px; }
+    .micro-btn:hover { background: rgba(0,0,0,0.1); color: #000; }
+
+    /* 主區域 */
+    #main { flex: 1; display: flex; flex-direction: column; height: 100vh; overflow: hidden; background: #fff; }
+    .top-bar { padding: 12px 20px; border-bottom: 1px solid #e0e0e0; display: flex; align-items: center; justify-content: space-between; background: #fafafa; }
+    .doc-title { font-size: 1.1rem; font-weight: bold; color: #222; }
+    
+    .mode-switch { display: flex; align-items: center; gap: 6px; font-size: 0.85rem; font-weight: 600; color: #444; cursor: pointer; user-select: none; }
+
+    /* 工具列 */
+    .toolbar { display: flex; gap: 8px; padding: 10px 20px; background: #f8f9fa; border-bottom: 1px solid #e0e0e0; align-items: center; flex-wrap: wrap; }
+    .tool-btn { padding: 6px 12px; background: #fff; border: 1px solid #ced4da; border-radius: 6px; font-size: 0.82rem; cursor: pointer; font-weight: 500; display: flex; align-items: center; gap: 4px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+    .tool-btn:hover { background: #e9ecef; }
+    .tool-btn.btn-primary { background: #007aff; color: white; border-color: #007aff; font-weight: 600; }
+    .tool-btn.btn-primary:hover { background: #0056b3; }
+    .tool-btn.btn-hl { background: #fff9db; border-color: #fcc419; color: #856404; font-weight: 600; }
+    .tool-btn.btn-hl:hover { background: #fff3bf; }
+
+    .color-group { display: flex; align-items: center; gap: 6px; border-left: 1px solid #ddd; padding-left: 10px; margin-left: 4px; }
+    .color-btn { width: 22px; height: 22px; border-radius: 50%; border: 2px solid #ccc; cursor: pointer; }
+    .color-btn:hover { transform: scale(1.1); }
+    .color-black { background: #000000; }
+    .color-red { background: #e63946; }
+    .color-blue { background: rgb(29, 93, 221); }
+
+    /* 筆記區域 */
+    .editor-wrapper { flex: 1; padding: 25px 30px; overflow-y: auto; position: relative; }
+    #noteViewer { min-height: 100%; font-size: 1rem; line-height: 2; color: #2b2b2b; outline: none; padding-bottom: 150px; }
+    
+    /* 分數結構樣式 */
+    .frac-wrap { display: inline-flex; flex-direction: column; vertical-align: middle; text-align: center; font-size: 0.9em; padding: 0 4px; line-height: 1.2; }
+    .frac-num { border-bottom: 1.5px solid #333; padding: 1px 4px; }
+    .frac-den { padding: 1px 4px; }
+
+    /* 閱讀模式 */
+    body.read-mode #noteViewer { pointer-events: none; }
+    body.read-mode .toolbar { display: none; }
+    body.read-mode .diagram-toolbar, body.read-mode .anchor-point, body.read-mode .box-drag-handle { display: none !important; }
+
+    /* 樹狀圖畫布 */
+    .diagram-container { position: relative; width: 100%; min-height: 380px; margin: 18px 0; border: 2px dashed #aaa; border-radius: 8px; background: #fafafa; overflow: hidden; user-select: none; }
+    .diagram-toolbar { position: absolute; top: 8px; right: 8px; z-index: 10; display: flex; gap: 6px; }
+    .diagram-btn { padding: 4px 8px; font-size: 0.75rem; background: #ffffff; border: 1px solid #aaa; border-radius: 4px; cursor: pointer; font-weight: 600; }
+    .diagram-btn.btn-del { color: #d9534f; border-color: #d9534f; }
+    
+    .diagram-svg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; }
+    .diagram-svg line { pointer-events: stroke; cursor: pointer; stroke-width: 3; stroke: #007aff; }
+    .diagram-svg line.selected { stroke: #ff3b30 !important; stroke-width: 5 !important; }
+    
+    .tree-box { position: absolute; min-width: 120px; background: #fff; border: 2px solid #007aff; border-radius: 6px; font-size: 0.88rem; text-align: center; z-index: 2; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+    .tree-box.selected { border-color: #ff9500 !important; box-shadow: 0 0 0 3px rgba(255,149,0,0.4) !important; }
+    .box-drag-handle { background: #eef6ff; height: 18px; cursor: move; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom: 1px solid #e0e0e0; }
+    .box-content { padding: 8px 12px; outline: none; }
+    
+    .anchor-point { position: absolute; width: 12px; height: 12px; background: #007aff; border-radius: 50%; cursor: pointer; z-index: 3; border: 1px solid #fff; }
+    .anchor-point:hover, .anchor-point.active { transform: scale(1.5); background: #ff9500 !important; }
+    .anchor-top { top: -6px; left: 50%; transform: translateX(-50%); }
+    .anchor-bottom { bottom: -6px; left: 50%; transform: translateX(-50%); }
+    .anchor-left { left: -6px; top: 50%; transform: translateY(-50%); }
+    .anchor-right { right: -6px; top: 50%; transform: translateY(-50%); }
+
+    /* Modal 通用彈窗 */
+    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.3); display: none; justify-content: center; align-items: center; z-index: 100; }
+    .modal-card { background: white; padding: 22px; border-radius: 10px; width: 480px; box-shadow: 0 4px 15px rgba(0,0,0,0.15); max-height: 85vh; display: flex; flex-direction: column; }
+    .modal-card h3 { margin-bottom: 12px; font-size: 1rem; }
+    .modal-card input { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 6px; margin-bottom: 10px; outline: none; font-size: 0.9rem; }
+    .modal-btns { display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px; }
+
+    /* 公式搜尋選單 */
+    .formula-list { overflow-y: auto; flex: 1; border: 1px solid #eee; border-radius: 6px; max-height: 320px; }
+    .formula-item { padding: 10px 12px; border-bottom: 1px solid #f0f0f0; display: flex; justify-content: space-between; align-items: center; }
+    .formula-item:hover { background: #eef6ff; }
+    .formula-title { font-weight: bold; font-size: 0.88rem; color: #111; }
+    .formula-preview { font-size: 0.82rem; color: #555; margin-top: 4px; }
+    .btn-insert-sm { background: #007aff; color: white; border: none; padding: 5px 12px; border-radius: 4px; font-size: 0.78rem; cursor: pointer; font-weight: 600; }
+    .btn-insert-sm:hover { background: #0056b3; }
+  </style>
+</head>
+<body>
+
+  <!-- 左側選單 -->
+  <div id="sidebar">
+    <div class="sidebar-header">📚 會計學全功能筆記</div>
+    <div class="add-btn-group">
+      <button class="btn-action" onclick="openModal('chapter')">➕ 新增章節</button>
+      <button class="btn-action" onclick="openModal('section')">➕ 新增小節</button>
+    </div>
+    <div class="chapter-list" id="chapterList"></div>
+  </div>
+
+  <!-- 主區域 -->
+  <div id="main">
+    <div class="top-bar">
+      <div class="doc-title" id="currentTitle">選取筆記</div>
+      <label class="mode-switch">
+        <input type="checkbox" id="readModeToggle" onchange="toggleReadMode(this.checked)">
+        📖 閱讀模式
+      </label>
+    </div>
+
+    <!-- 工具列 -->
+    <div class="toolbar">
+      <button class="tool-btn btn-primary" onclick="openFormulaSearchModal()">⚡ 搜尋會計常用公式 (輸入/)</button>
+      <button class="tool-btn" onclick="openFracModal()">➕ 自訂分數</button>
+      
+      <!-- 🖍️ 修復：改為按鈕觸發，點擊才劃螢光筆 -->
+      <button class="tool-btn btn-hl" onmousedown="event.preventDefault(); applyHighlight('#ffec99');">🖍️ 劃螢光筆</button>
+      <button class="tool-btn" onmousedown="event.preventDefault(); removeHighlight();">🧹 清除格式</button>
+
+      <!-- 🎨 修復：顏色切換按鈕 -->
+      <div class="color-group">
+        <span style="font-size:0.8rem; color:#666;">文字顏色：</span>
+        <div class="color-btn color-black" title="黑色" onmousedown="event.preventDefault(); applyTextColor('#000000');"></div>
+        <div class="color-btn color-red" title="紅色" onmousedown="event.preventDefault(); applyTextColor('#e63946');"></div>
+        <div class="color-btn color-blue" title="藍色" onmousedown="event.preventDefault(); applyTextColor('rgb(29, 93, 221)');"></div>
+      </div>
+
+      <button class="tool-btn" style="font-weight:900;" onmousedown="event.preventDefault(); toggleBold();">B</button>
+      <button class="tool-btn" onclick="createDiagramContainer()">🌳 建立樹狀圖畫布</button>
+      <button class="tool-btn" onclick="addBoxToActiveDiagram()">🔳 新增文字框</button>
+    </div>
+
+    <!-- 筆記區域 -->
+    <div class="editor-wrapper">
+      <div id="noteViewer" contenteditable="true" oninput="debouncedSave()" onkeyup="handleEditorKeyUp(event)"></div>
+    </div>
+  </div>
+
+  <!-- 🔍 完整會計公式庫 Modal -->
+  <div class="modal-overlay" id="formulaModal">
+    <div class="modal-card">
+      <h3>🔍 會計常用公式庫</h3>
+      <input type="text" id="formulaSearchInput" placeholder="輸入關鍵字 (如：毛利、天數、周轉率、隱含、ROA)..." oninput="filterFormulas()">
+      <div class="formula-list" id="formulaListContainer"></div>
+      <div class="modal-btns">
+        <button class="tool-btn" onclick="closeFormulaModal()">關閉</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ➕ 自訂橫線分數 Modal -->
+  <div class="modal-overlay" id="fracModal">
+    <div class="modal-card">
+      <h3>➕ 插入自訂橫線分數</h3>
+      <label style="font-size:0.75rem; color:#666;">分子：</label>
+      <input type="text" id="fracNumInput" placeholder="例如：銷貨毛利">
+      <label style="font-size:0.75rem; color:#666;">分母：</label>
+      <input type="text" id="fracDenInput" placeholder="例如：銷貨收入淨額">
+      <div class="modal-btns">
+        <button class="tool-btn" onclick="closeFracModal()">取消</button>
+        <button class="btn-action" style="flex:none; padding: 6px 16px;" onclick="submitFracModal()">插入</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 新增章節/小節 Modal -->
+  <div class="modal-overlay" id="inputModal">
+    <div class="modal-card">
+      <h3 id="modalTitle">新增</h3>
+      <div id="modalSelectGroup" style="display:none;">
+        <label style="font-size:0.75rem; color:#666;">選擇所屬章節：</label>
+        <select id="chapterSelect" style="width:100%; padding:8px; margin-bottom:10px;"></select>
+      </div>
+      <input type="text" id="modalInput" placeholder="請輸入名稱...">
+      <div class="modal-btns">
+        <button class="tool-btn" onclick="closeModal()">取消</button>
+        <button class="btn-action" style="flex:none; padding: 6px 16px;" onclick="submitModal()">確定</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* 📚 完整會計常用公式庫 */
+    const ACCOUNTING_FORMULAS = [
+      { name: "銷貨毛利率", keywords: "毛利 毛利率 銷貨毛利 銷貨收入", html: `毛利率 = <span class="frac-wrap"><span class="frac-num">銷貨毛利</span><span class="frac-den">銷貨收入淨額</span></span> × 100%` },
+      { name: "應收帳款周轉天數", keywords: "應收帳款 周轉天數 平均收現期間 收款天數 365", html: `應收帳款周轉天數 = <span class="frac-wrap"><span class="frac-num">365</span><span class="frac-den">應收帳款周轉率</span></span>` },
+      { name: "存貨周轉天數", keywords: "存貨 周轉天數 售貨天數 365", html: `存貨周轉天數 = <span class="frac-wrap"><span class="frac-num">365</span><span class="frac-den">存貨周轉率</span></span>` },
+      { name: "營業週期", keywords: "營業週期 周轉天數 應收帳款 存貨", html: `營業週期 = 存貨周轉天數 + 應收帳款周轉天數` },
+      { name: "現金轉化週期 (CCC)", keywords: "現金轉化週期 CCC 應付帳款 天數", html: `現金轉化週期 = 存貨周轉天數 + 應收帳款周轉天數 - 應付帳款付款天數` },
+      { name: "應收帳款周轉率", keywords: "應收帳款 周轉率 銷貨收入", html: `應收帳款周轉率 = <span class="frac-wrap"><span class="frac-num">銷貨收入淨額</span><span class="frac-den">平均應收帳款</span></span>` },
+      { name: "存貨周轉率", keywords: "存貨 周轉率 銷貨成本", html: `存貨周轉率 = <span class="frac-wrap"><span class="frac-num">銷貨成本</span><span class="frac-den">平均存貨</span></span>` },
+      { name: "營業利益率", keywords: "營業利益率 營業利益 銷貨收入", html: `營業利益率 = <span class="frac-wrap"><span class="frac-num">營業利益</span><span class="frac-den">銷貨收入淨額</span></span> × 100%` },
+      { name: "純益率 (淨利率)", keywords: "純益率 淨利率 本期淨利 銷貨收入", html: `純益率 = <span class="frac-wrap"><span class="frac-num">本期淨利</span><span class="frac-den">銷貨收入淨額</span></span> × 100%` },
+      { name: "隱含利率 / 現值折現公式", keywords: "隱含利率 折現 現值 未實現利息", html: `現值 = <span class="frac-wrap"><span class="frac-num">未來現金流量</span><span class="frac-den">(1 + 隱含利率)^n</span></span>` },
+      { name: "總資產報酬率 (ROA)", keywords: "資產報酬率 ROA 淨利 平均總資產", html: `ROA = <span class="frac-wrap"><span class="frac-num">本期淨利 + 利息費用×(1-稅率)</span><span class="frac-den">平均總資產</span></span>` },
+      { name: "權益報酬率 (ROE)", keywords: "權益報酬率 ROE 股東權益", html: `ROE = <span class="frac-wrap"><span class="frac-num">本期淨利</span><span class="frac-den">平均股東權益</span></span>` },
+      { name: "每股盈餘 (EPS)", keywords: "每股盈餘 EPS 股利 股數", html: `EPS = <span class="frac-wrap"><span class="frac-num">本期淨利 - 特別股股利</span><span class="frac-den">普通股加權平均流通在外股數</span></span>` }
+    ];
+
+    let savedRange = null; 
+    let selectedElement = null;
+    let activeAnchor = null;
+    let isDraggingBox = null;
+    let dragStartX = 0, dragStartY = 0, boxInitialLeft = 0, boxInitialTop = 0;
+
+    let chapters = JSON.parse(localStorage.getItem("acc_struct_v11")) || [
+      { title: "會計基礎", sections: [{ id: "sec_1", title: "會計方程式", content: "會計基本恆等式：資產 = 負債 + 權益" }] },
+      { title: "財務分析", sections: [{ id: "sec_2", title: "周轉天數與毛利率", content: "框選文字後點擊「🖍️ 劃螢光筆」或色彩圓點試試看！" }] }
+    ];
+
+    let currentSecId = "sec_2";
+    let modalType = "";
+    let saveTimeout = null;
+
+    function debouncedSave() {
+      clearTimeout(saveTimeout);
+      saveTimeout = setTimeout(() => { saveCurrentNote(); }, 400);
+    }
+
+    /* 🖍️ 修復：螢光筆功能 (框選後按鈕觸發 + 斷開繼承) */
+    function applyHighlight(bgColor) {
+      const sel = window.getSelection();
+      if (!sel.rangeCount || sel.isCollapsed) return alert("請先用滑鼠框選要劃螢光筆的文字！");
+      
+      document.execCommand('hiliteColor', false, bgColor);
+      clearStyleInherit();
+      debouncedSave();
+    }
+
+    /* 🧹 修復：清除背景螢光筆與文字顏色 */
+    function removeHighlight() {
+      const sel = window.getSelection();
+      if (!sel.rangeCount || sel.isCollapsed) return alert("請先用滑鼠框選要清除格式的文字！");
+      
+      document.execCommand('removeFormat', false, null);
+      document.execCommand('hiliteColor', false, 'transparent');
+      debouncedSave();
+    }
+
+    /* 🎨 修復：文字顏色改為按鈕完美觸發 */
+    function applyTextColor(color) {
+      const sel = window.getSelection();
+      if (!sel.rangeCount || sel.isCollapsed) return alert("請先用滑鼠框選要變色的文字！");
+      
+      document.execCommand('foreColor', false, color);
+      clearStyleInherit();
+      debouncedSave();
+    }
+
+    /* 粗體 */
+    function toggleBold() {
+      document.execCommand('bold', false, null);
+      debouncedSave();
+    }
+
+    /* 核心秘訣：在選區尾端插入乾淨的空白，確保「下一個打的字」不會繼續帶有螢光/顏色 */
+    function clearStyleInherit() {
+      const sel = window.getSelection();
+      if (sel.rangeCount > 0) {
+        const range = sel.getRangeAt(0);
+        range.collapse(false); // 將游標移到選區末端
+        
+        // 插入零寬度不列印字元或乾淨空白，並重置當前樣式
+        const span = document.createElement('span');
+        span.innerHTML = '&#8203;'; // 零寬度空格
+        span.style.backgroundColor = 'transparent';
+        span.style.color = '#333333';
+        range.insertNode(span);
+        
+        // 將游標放置於新節點後
+        range.setStartAfter(span);
+        range.setEndAfter(span);
+        sel.removeAllRanges();
+        sel.addRange(range);
+      }
+    }
+
+    /* 快捷鍵 / 喚醒公式搜尋 */
+    function handleEditorKeyUp(e) {
+      if (e.key === '/') {
+        saveSelection();
+        openFormulaSearchModal();
+      }
+    }
+
+    function saveSelection() {
+      const sel = window.getSelection();
+      if (sel.rangeCount > 0) {
+        savedRange = sel.getRangeAt(0);
+      }
+    }
+
+    function restoreSelection() {
+      if (savedRange) {
+        const sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(savedRange);
+      }
+    }
+
+    /* 公式 Modal 邏輯 */
+    function openFormulaSearchModal() {
+      saveSelection();
+      document.getElementById("formulaSearchInput").value = "";
+      filterFormulas();
+      document.getElementById("formulaModal").style.display = "flex";
+      document.getElementById("formulaSearchInput").focus();
+    }
+
+    function closeFormulaModal() {
+      document.getElementById("formulaModal").style.display = "none";
+    }
+
+    function filterFormulas() {
+      const keyword = document.getElementById("formulaSearchInput").value.toLowerCase().trim();
+      const container = document.getElementById("formulaListContainer");
+      container.innerHTML = "";
+
+      const filtered = ACCOUNTING_FORMULAS.filter(f => 
+        f.name.toLowerCase().includes(keyword) || f.keywords.toLowerCase().includes(keyword)
+      );
+
+      if (filtered.length === 0) {
+        container.innerHTML = `<div style="padding:15px; text-align:center; color:#888;">找不到相關公式</div>`;
+        return;
+      }
+
+      filtered.forEach((f, idx) => {
+        const item = document.createElement("div");
+        item.className = "formula-item";
+        item.innerHTML = `
+          <div>
+            <div class="formula-title">${f.name}</div>
+            <div class="formula-preview">${f.html}</div>
+          </div>
+          <button class="btn-insert-sm" onclick="insertFormulaByIndex(${idx})">帶入公式</button>
+        `;
+        container.appendChild(item);
+      });
+    }
+
+    function insertFormulaByIndex(idx) {
+      const formulaHtml = ACCOUNTING_FORMULAS[idx].html;
+      closeFormulaModal();
+      
+      const viewer = document.getElementById("noteViewer");
+      viewer.focus();
+      restoreSelection();
+
+      const sel = window.getSelection();
+      if (sel.rangeCount > 0) {
+        const range = sel.getRangeAt(0);
+        if (range.startOffset > 0 && range.startContainer.nodeType === Node.TEXT_NODE) {
+          if (range.startContainer.textContent.endsWith('/')) {
+            range.startContainer.textContent = range.startContainer.textContent.slice(0, -1);
+          }
+        }
+      }
+
+      document.execCommand('insertHTML', false, `&nbsp;${formulaHtml}&nbsp;`);
+      debouncedSave();
+    }
+
+    /* 自訂分數 */
+    function openFracModal() {
+      saveSelection();
+      document.getElementById("fracNumInput").value = "";
+      document.getElementById("fracDenInput").value = "";
+      document.getElementById("fracModal").style.display = "flex";
+      document.getElementById("fracNumInput").focus();
+    }
+
+    function closeFracModal() { document.getElementById("fracModal").style.display = "none"; }
+
+    function submitFracModal() {
+      const num = document.getElementById("fracNumInput").value.trim() || "分子";
+      const den = document.getElementById("fracDenInput").value.trim() || "分母";
+      const html = `<span class="frac-wrap"><span class="frac-num">${num}</span><span class="frac-den">${den}</span></span>`;
+      
+      closeFracModal();
+      document.getElementById("noteViewer").focus();
+      restoreSelection();
+      document.execCommand('insertHTML', false, `&nbsp;${html}&nbsp;`);
+      debouncedSave();
+    }
+
+    /* 🌳 樹狀圖畫布 */
+    function createDiagramContainer() {
+      const id = "diag_" + Date.now();
+      const html = `
+        <div class="diagram-container" id="${id}" contenteditable="false">
+          <div class="diagram-toolbar">
+            <button class="diagram-btn btn-del" onclick="deleteSelectedElement()">🗑️ 刪除選取框/連線</button>
+          </div>
+          <svg class="diagram-svg" id="svg_${id}">
+            <defs>
+              <marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#007aff"/>
+              </marker>
+            </defs>
+          </svg>
+        </div><br>
+      `;
+      document.execCommand('insertHTML', false, html);
+      debouncedSave();
+    }
+
+    function addBoxToActiveDiagram() {
+      const containers = document.querySelectorAll('.diagram-container');
+      if (containers.length === 0) return alert("請先點擊「🌳 建立樹狀圖畫布」！");
+      const target = containers[containers.length - 1];
+      const boxId = "box_" + Date.now();
+      
+      const box = document.createElement('div');
+      box.className = 'tree-box';
+      box.id = boxId;
+      box.style.left = '40px';
+      box.style.top = '40px';
+
+      box.innerHTML = `
+        <div class="box-drag-handle"></div>
+        <div class="box-content" contenteditable="true">雙擊改字</div>
+        <div class="anchor-point anchor-top" data-id="${boxId}_top"></div>
+        <div class="anchor-point anchor-bottom" data-id="${boxId}_bottom"></div>
+        <div class="anchor-point anchor-left" data-id="${boxId}_left"></div>
+        <div class="anchor-point anchor-right" data-id="${boxId}_right"></div>
+      `;
+
+      target.appendChild(box);
+      debouncedSave();
+    }
+
+    /* 樹狀圖拖曳與點擊 */
+    document.addEventListener('mousedown', (e) => {
+      if (document.body.classList.contains('read-mode')) return;
+
+      if (e.target.classList.contains('box-drag-handle')) {
+        e.preventDefault();
+        const box = e.target.closest('.tree-box');
+        isDraggingBox = box;
+        dragStartX = e.clientX;
+        dragStartY = e.clientY;
+        boxInitialLeft = box.offsetLeft;
+        boxInitialTop = box.offsetTop;
+      }
+
+      const box = e.target.closest('.tree-box');
+      if (box && !e.target.classList.contains('anchor-point')) {
+        clearSelection();
+        selectedElement = box;
+        box.classList.add('selected');
+      }
+
+      if (e.target.tagName === 'line') {
+        e.stopPropagation();
+        clearSelection();
+        selectedElement = e.target;
+        e.target.classList.add('selected');
+      }
+    });
+
+    document.addEventListener('mousemove', (e) => {
+      if (isDraggingBox) {
+        const dx = e.clientX - dragStartX;
+        const dy = e.clientY - dragStartY;
+        isDraggingBox.style.left = (boxInitialLeft + dx) + 'px';
+        isDraggingBox.style.top = (boxInitialTop + dy) + 'px';
+        
+        const container = isDraggingBox.closest('.diagram-container');
+        if (container) updateContainerLines(container);
+      }
+    });
+
+    document.addEventListener('mouseup', () => {
+      if (isDraggingBox) {
+        isDraggingBox = null;
+        debouncedSave();
+      }
+    });
+
+    document.addEventListener('click', (e) => {
+      if (document.body.classList.contains('read-mode')) return;
+
+      if (e.target.classList.contains('anchor-point')) {
+        e.stopPropagation();
+        const anc = e.target;
+        const container = anc.closest('.diagram-container');
+
+        if (!activeAnchor) {
+          activeAnchor = anc;
+          anc.classList.add('active');
+        } else {
+          if (activeAnchor !== anc) {
+            connectAnchors(activeAnchor, anc, container);
+          }
+          activeAnchor.classList.remove('active');
+          activeAnchor = null;
+        }
+      } else if (!e.target.classList.contains('diagram-btn')) {
+        if (activeAnchor) {
+          activeAnchor.classList.remove('active');
+          activeAnchor = null;
+        }
+      }
+    });
+
+    function connectAnchors(ancA, ancB, container) {
+      const svg = container.querySelector('.diagram-svg');
+      const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      
+      const idA = ancA.getAttribute('data-id');
+      const idB = ancB.getAttribute('data-id');
+
+      line.setAttribute('data-from', idA);
+      line.setAttribute('data-to', idB);
+      line.setAttribute('marker-end', 'url(#arrow)');
+
+      svg.appendChild(line);
+      updateContainerLines(container);
+      debouncedSave();
+    }
+
+    function updateContainerLines(container) {
+      const cRect = container.getBoundingClientRect();
+      const lines = container.querySelectorAll('.diagram-svg line');
+
+      lines.forEach(line => {
+        const fromId = line.getAttribute('data-from');
+        const toId = line.getAttribute('data-to');
+
+        const ancA = container.querySelector(`[data-id="${fromId}"]`);
+        const ancB = container.querySelector(`[data-id="${toId}"]`);
+
+        if (ancA && ancB) {
+          const rA = ancA.getBoundingClientRect();
+          const rB = ancB.getBoundingClientRect();
+
+          line.setAttribute('x1', rA.left + rA.width / 2 - cRect.left);
+          line.setAttribute('y1', rA.top + rA.height / 2 - cRect.top);
+          line.setAttribute('x2', rB.left + rB.width / 2 - cRect.left);
+          line.setAttribute('y2', rB.top + rB.height / 2 - cRect.top);
+        }
+      });
+    }
+
+    function clearSelection() {
+      if (selectedElement) {
+        if (selectedElement.classList) selectedElement.classList.remove('selected');
+        selectedElement = null;
+      }
+    }
+
+    function deleteSelectedElement() {
+      if (selectedElement) {
+        selectedElement.remove();
+        selectedElement = null;
+        document.querySelectorAll('.diagram-container').forEach(c => updateContainerLines(c));
+        debouncedSave();
+      } else {
+        alert("請先點擊選取要刪除的「文字框」或「箭頭線條」！");
+      }
+    }
+
+    /* 側邊欄與存檔 */
+    function renderSidebar() {
+      const list = document.getElementById("chapterList");
+      list.innerHTML = "";
+      const zhNums = ["一", "二", "三", "四", "五", "六", "七", "八", "九", "十"];
+
+      chapters.forEach((chap, cIdx) => {
+        const cBox = document.createElement("div");
+        cBox.className = "chap-box";
+        const chapNumText = `第${zhNums[cIdx] || (cIdx + 1)}章`;
+        
+        cBox.innerHTML = `
+          <div class="chap-header">
+            <span>${chapNumText} ${chap.title}</span>
+            <div class="ctrl-btns">
+              <button class="micro-btn" onclick="moveChap(${cIdx}, -1)">▲</button>
+              <button class="micro-btn" onclick="moveChap(${cIdx}, 1)">▼</button>
+              <button class="micro-btn" style="color:red;" onclick="delChap(${cIdx})">✖</button>
+            </div>
+          </div>
+        `;
+
+        chap.sections.forEach((sec, sIdx) => {
+          const secNumText = `${cIdx + 1}.${sIdx + 1}`;
+          const item = document.createElement("div");
+          item.className = `sec-item ${sec.id === currentSecId ? 'active' : ''}`;
+          item.onclick = (e) => {
+            if(!e.target.classList.contains('micro-btn')) loadSec(sec.id, `${secNumText} ${sec.title}`);
+          };
+
+          item.innerHTML = `
+            <span>${secNumText} ${sec.title}</span>
+            <div class="ctrl-btns">
+              <button class="micro-btn" onclick="moveSec(${cIdx}, ${sIdx}, -1)">▲</button>
+              <button class="micro-btn" onclick="moveSec(${cIdx}, ${sIdx}, 1)">▼</button>
+              <button class="micro-btn" style="color:red;" onclick="delSec(${cIdx}, ${sIdx})">✖</button>
+            </div>
+          `;
+          cBox.appendChild(item);
+        });
+
+        list.appendChild(cBox);
+      });
+
+      saveData();
+    }
+
+    function moveChap(idx, dir) {
+      if (idx + dir < 0 || idx + dir >= chapters.length) return;
+      const temp = chapters[idx];
+      chapters[idx] = chapters[idx + dir];
+      chapters[idx + dir] = temp;
+      renderSidebar();
+    }
+
+    function delChap(idx) {
+      if (confirm("確定刪除此章節？")) {
+        chapters.splice(idx, 1);
+        renderSidebar();
+      }
+    }
+
+    function moveSec(cIdx, sIdx, dir) {
+      const secs = chapters[cIdx].sections;
+      if (sIdx + dir < 0 || sIdx + dir >= secs.length) return;
+      const temp = secs[sIdx];
+      secs[sIdx] = secs[sIdx + dir];
+      secs[sIdx + dir] = temp;
+      renderSidebar();
+    }
+
+    function delSec(cIdx, sIdx) {
+      if (confirm("確定刪除此小節？")) {
+        chapters[cIdx].sections.splice(sIdx, 1);
+        renderSidebar();
+      }
+    }
+
+    function loadSec(id, title) {
+      currentSecId = id;
+      document.getElementById("currentTitle").innerText = title;
+      let sec = getSecObj(id);
+      document.getElementById("noteViewer").innerHTML = sec ? sec.content : "";
+      
+      setTimeout(() => {
+        document.querySelectorAll('.diagram-container').forEach(c => updateContainerLines(c));
+      }, 50);
+
+      renderSidebar();
+    }
+
+    function getSecObj(id) {
+      for (let c of chapters) {
+        for (let s of c.sections) if (s.id === id) return s;
+      }
+      return null;
+    }
+
+    function saveCurrentNote() {
+      let sec = getSecObj(currentSecId);
+      if (sec) {
+        sec.content = document.getElementById("noteViewer").innerHTML;
+        saveData();
+      }
+    }
+
+    function toggleReadMode(isReadMode) {
+      document.body.classList.toggle('read-mode', isReadMode);
+      document.getElementById('noteViewer').setAttribute('contenteditable', !isReadMode);
+    }
+
+    function openModal(type) {
+      modalType = type;
+      const modal = document.getElementById("inputModal");
+      const selectGroup = document.getElementById("modalSelectGroup");
+      if (type === 'chapter') {
+        selectGroup.style.display = "none";
+      } else {
+        selectGroup.style.display = "block";
+        const select = document.getElementById("chapterSelect");
+        select.innerHTML = "";
+        chapters.forEach((c, idx) => { select.innerHTML += `<option value="${idx}">第${idx+1}章 ${c.title}</option>`; });
+      }
+      document.getElementById("modalInput").value = "";
+      modal.style.display = "flex";
+      document.getElementById("modalInput").focus();
+    }
+
+    function closeModal() { document.getElementById("inputModal").style.display = "none"; }
+
+    function submitModal() {
+      let val = document.getElementById("modalInput").value.trim();
+      if (!val) return;
+      if (modalType === 'chapter') {
+        chapters.push({ title: val, sections: [] });
+      } else {
+        const chIdx = document.getElementById("chapterSelect").value;
+        const newSecId = "sec_" + Date.now();
+        chapters[chIdx].sections.push({ id: newSecId, title: val, content: "點擊開始記錄..." });
+        currentSecId = newSecId;
+      }
+      closeModal();
+      renderSidebar();
+      loadSec(currentSecId, val);
+    }
+
+    function saveData() { localStorage.setItem("acc_struct_v11", JSON.stringify(chapters)); }
+
+    window.onload = () => {
+      renderSidebar();
+      loadSec("sec_2", "2.1 周轉天數與毛利率");
+    };
+  </script>
+</body>
+</html>
