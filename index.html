@@ -77,19 +77,20 @@
     /* 閱讀模式鎖定 */
     body.read-mode #noteViewer { pointer-events: none; }
     body.read-mode .toolbar { display: none !important; }
-    body.read-mode .diagram-toolbar, body.read-mode .anchor-point, body.read-mode .box-drag-handle, body.read-mode .box-quick-del { display: none !important; }
+    body.read-mode .diagram-toolbar, body.read-mode .anchor-point, body.read-mode .box-drag-handle, body.read-mode .box-quick-del, body.read-mode .line-del-btn { display: none !important; }
 
     /* 樹狀圖畫布 */
     .diagram-container { position: relative; width: 100%; min-height: 320px; margin: 14px 0; border: 2px dashed #aaa; border-radius: 8px; background: #fafafa; overflow: hidden; user-select: none; }
     .diagram-toolbar { position: absolute; top: 6px; right: 6px; z-index: 20; display: flex; gap: 4px; }
-    .diagram-btn { padding: 4px 8px; font-size: 0.75rem; background: #ffffff; border: 1px solid #aaa; border-radius: 4px; cursor: pointer; font-weight: 600; }
-    .diagram-btn.btn-del { color: #ffffff; background: #d9534f; border-color: #d9534f; }
-    .diagram-btn.btn-del:hover { background: #c9302c; }
     
     .diagram-svg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; }
     .diagram-svg line { pointer-events: stroke; cursor: pointer; stroke-width: 6; stroke: #007aff; }
     .diagram-svg line.selected { stroke: #ff3b30 !important; stroke-width: 8 !important; }
     
+    /* 樹狀圖連線一鍵刪除按鈕 */
+    .line-del-btn { position: absolute; width: 20px; height: 20px; background: #ff3b30; color: white; border-radius: 50%; font-size: 12px; font-weight: bold; line-height: 20px; text-align: center; cursor: pointer; z-index: 15; box-shadow: 0 1px 3px rgba(0,0,0,0.3); border: 1px solid #fff; display: none; transform: translate(-50%, -50%); }
+    .line-del-btn:hover { background: #d9251d; transform: translate(-50%, -50%) scale(1.1); }
+
     /* 文字框與一鍵刪除鍵 */
     .tree-box { position: absolute; min-width: 100px; background: #fff; border: 2px solid #007aff; border-radius: 6px; font-size: 0.82rem; text-align: center; z-index: 2; box-shadow: 0 2px 6px rgba(0,0,0,0.1); touch-action: none; cursor: move; }
     .tree-box.selected { border-color: #ff9500 !important; box-shadow: 0 0 0 3px rgba(255,149,0,0.4) !important; }
@@ -267,7 +268,7 @@
     let dragStartX = 0, dragStartY = 0, boxInitialLeft = 0, boxInitialTop = 0;
     let isReadMode = false;
 
-    let chapters = JSON.parse(localStorage.getItem("acc_struct_v14")) || [
+    let chapters = JSON.parse(localStorage.getItem("acc_struct_v15")) || [
       { title: "會計基礎", sections: [{ id: "sec_1", title: "會計方程式", content: "會計基本恆等式：資產 = 負債 + 權益" }] },
       { title: "財務分析", sections: [{ id: "sec_2", title: "周轉天數與毛利率", content: "點擊左上角 ☰ 可展開章節切換。" }] }
     ];
@@ -414,9 +415,7 @@
       const id = "diag_" + Date.now();
       const html = `
         <div class="diagram-container" id="${id}" contenteditable="false">
-          <div class="diagram-toolbar">
-            <button class="diagram-btn btn-del" onclick="deleteSelectedElement(this)">🗑️ 刪除選取物件</button>
-          </div>
+          <div class="line-del-btn" id="del_btn_${id}" title="刪除連線" onclick="removeLineByBtn('${id}')">✕</div>
           <svg class="diagram-svg" id="svg_${id}">
             <defs>
               <marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
@@ -475,7 +474,22 @@
 
       box.remove();
       if (selectedElement === box) selectedElement = null;
+      hideLineDelBtn();
       debouncedSave();
+    }
+
+    /* 點擊連線上的 ✕ 刪除連線 */
+    function removeLineByBtn(containerId) {
+      if (selectedElement && selectedElement.tagName === 'line') {
+        selectedElement.remove();
+        selectedElement = null;
+        hideLineDelBtn();
+        debouncedSave();
+      }
+    }
+
+    function hideLineDelBtn() {
+      document.querySelectorAll('.line-del-btn').forEach(btn => btn.style.display = 'none');
     }
 
     function getPointerPos(e) {
@@ -487,7 +501,7 @@
 
     function handleStart(e) {
       if (document.body.classList.contains('read-mode')) return;
-      if (e.target.classList.contains('box-quick-del')) return;
+      if (e.target.classList.contains('box-quick-del') || e.target.classList.contains('line-del-btn')) return;
 
       const box = e.target.closest('.tree-box');
       
@@ -513,6 +527,22 @@
         clearSelection();
         selectedElement = e.target;
         e.target.classList.add('selected');
+
+        // 計算連線中心，顯示刪除 ✕ 按鈕
+        const container = e.target.closest('.diagram-container');
+        if (container) {
+          const delBtn = container.querySelector('.line-del-btn');
+          const x1 = parseFloat(e.target.getAttribute('x1'));
+          const y1 = parseFloat(e.target.getAttribute('y1'));
+          const x2 = parseFloat(e.target.getAttribute('x2'));
+          const y2 = parseFloat(e.target.getAttribute('y2'));
+
+          if (delBtn) {
+            delBtn.style.left = ((x1 + x2) / 2) + 'px';
+            delBtn.style.top = ((y1 + y2) / 2) + 'px';
+            delBtn.style.display = 'block';
+          }
+        }
       }
     }
 
@@ -543,7 +573,7 @@
     document.addEventListener('touchmove', handleMove, {passive: false});
     document.addEventListener('touchend', handleEnd);
 
-    /* 💡 全局精準雙擊（Double Click）刪除連線修復 */
+    /* 雙擊連線也可直接刪除 */
     document.addEventListener('dblclick', (e) => {
       if (isReadMode) return;
       if (e.target && e.target.tagName === 'line') {
@@ -551,6 +581,7 @@
         e.preventDefault();
         e.target.remove();
         selectedElement = null;
+        hideLineDelBtn();
         debouncedSave();
       }
     }, true);
@@ -573,7 +604,7 @@
           activeAnchor.classList.remove('active');
           activeAnchor = null;
         }
-      } else if (!e.target.classList.contains('diagram-btn') && !e.target.closest('.tree-box') && e.target.tagName !== 'line') {
+      } else if (!e.target.classList.contains('tree-box') && e.target.tagName !== 'line' && !e.target.classList.contains('line-del-btn')) {
         clearSelection();
         if (activeAnchor) {
           activeAnchor.classList.remove('active');
@@ -610,10 +641,24 @@
         if (ancA && ancB) {
           const rA = ancA.getBoundingClientRect();
           const rB = ancB.getBoundingClientRect();
-          line.setAttribute('x1', rA.left + rA.width / 2 - cRect.left);
-          line.setAttribute('y1', rA.top + rA.height / 2 - cRect.top);
-          line.setAttribute('x2', rB.left + rB.width / 2 - cRect.left);
-          line.setAttribute('y2', rB.top + rB.height / 2 - cRect.top);
+          const x1 = rA.left + rA.width / 2 - cRect.left;
+          const y1 = rA.top + rA.height / 2 - cRect.top;
+          const x2 = rB.left + rB.width / 2 - cRect.left;
+          const y2 = rB.top + rB.height / 2 - cRect.top;
+
+          line.setAttribute('x1', x1);
+          line.setAttribute('y1', y1);
+          line.setAttribute('x2', x2);
+          line.setAttribute('y2', y2);
+
+          // 若當前連線正被選取，順便更新其 ✕ 按鈕位置
+          if (line === selectedElement) {
+            const delBtn = container.querySelector('.line-del-btn');
+            if (delBtn) {
+              delBtn.style.left = ((x1 + x2) / 2) + 'px';
+              delBtn.style.top = ((y1 + y2) / 2) + 'px';
+            }
+          }
         }
       });
     }
@@ -623,25 +668,7 @@
         if (selectedElement.classList) selectedElement.classList.remove('selected');
         selectedElement = null;
       }
-    }
-
-    function deleteSelectedElement(btn) {
-      if (selectedElement) {
-        if (selectedElement.classList.contains('tree-box')) {
-          removeTreeBox(selectedElement.id);
-        } else {
-          selectedElement.remove();
-          selectedElement = null;
-        }
-        const container = btn ? btn.closest('.diagram-container') : document;
-        if(container) {
-          const svg = container.querySelector('.diagram-svg');
-          if(svg) updateContainerLines(container);
-        }
-        debouncedSave();
-      } else {
-        alert("提示：請先點選「連線」或「文字框」使其變成選取狀態（變紅線/橘框），再點擊刪除按鈕。\n\n💡 快速鍵：連線上連點兩下（雙擊）可直接刪除！");
-      }
+      hideLineDelBtn();
     }
 
     /* 📌 側邊欄與極簡標題渲染 */
@@ -669,7 +696,6 @@
           item.className = `sec-item ${sec.id === currentSecId ? 'active' : ''}`;
           item.onclick = (e) => {
             if(!e.target.classList.contains('micro-btn')) {
-              // 標題採用：標題 + 小節內容
               loadSec(sec.id, `${chap.title} - ${sec.title}`);
               closeSidebar();
             }
@@ -817,7 +843,7 @@
     function saveData() { 
       let sec = getSecObj(currentSecId);
       if (sec) sec.content = document.getElementById("noteViewer").innerHTML;
-      localStorage.setItem("acc_struct_v14", JSON.stringify(chapters)); 
+      localStorage.setItem("acc_struct_v15", JSON.stringify(chapters)); 
     }
 
     window.onload = () => {
