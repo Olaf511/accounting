@@ -8,12 +8,12 @@
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; display: flex; height: 100vh; background: #f8f9fa; color: #333; overflow: hidden; position: relative; }
     
-    /* 側邊欄 Overlay 遮罩 (手機版用) */
-    #sidebarOverlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.4); z-index: 90; display: none; }
+    /* 側邊欄 Overlay 遮罩 */
+    #sidebarOverlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.4); z-index: 190; display: none; }
     #sidebarOverlay.show { display: block; }
 
     /* 側邊欄 */
-    #sidebar { width: 280px; background: #ffffff; border-right: 1px solid #e0e0e0; display: flex; flex-direction: column; z-index: 100; transition: transform 0.25s ease; }
+    #sidebar { width: 280px; background: #ffffff; border-right: 1px solid #e0e0e0; display: flex; flex-direction: column; z-index: 200; transition: transform 0.25s ease; }
     .sidebar-header { padding: 14px 16px; font-weight: bold; font-size: 1rem; border-bottom: 1px solid #eee; background: #fcfcfc; color: #111; display: flex; justify-content: space-between; align-items: center; }
     .add-btn-group { padding: 8px 10px; display: flex; gap: 6px; border-bottom: 1px solid #eee; }
     
@@ -31,7 +31,11 @@
     .micro-btn:hover { background: rgba(0,0,0,0.1); color: #000; }
 
     /* 主區域 */
-    #main { flex: 1; display: flex; flex-direction: column; height: 100vh; overflow: hidden; background: #fff; width: 100%; }
+    #main { flex: 1; display: flex; flex-direction: column; height: 100vh; overflow: hidden; background: #fff; width: 100%; position: relative; }
+    
+    /* 置頂固定選單容器 */
+    .sticky-header-container { position: sticky; top: 0; z-index: 80; background: #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+
     .top-bar { padding: 10px 14px; border-bottom: 1px solid #e0e0e0; display: flex; align-items: center; justify-content: space-between; background: #fafafa; gap: 10px; }
     .top-bar-left { display: flex; align-items: center; gap: 10px; min-width: 0; }
     .menu-toggle { display: none; font-size: 1.2rem; background: none; border: none; cursor: pointer; padding: 4px 8px; border-radius: 4px; }
@@ -40,7 +44,7 @@
     .doc-title { font-size: 1rem; font-weight: bold; color: #222; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .mode-switch { display: flex; align-items: center; gap: 4px; font-size: 0.8rem; font-weight: 600; color: #444; cursor: pointer; user-select: none; flex-shrink: 0; }
 
-    /* 工具列 (支援手機橫向滑動) */
+    /* 工具列 (支援橫向滑動) */
     .toolbar { display: flex; gap: 8px; padding: 8px 12px; background: #f8f9fa; border-bottom: 1px solid #e0e0e0; align-items: center; overflow-x: auto; white-space: nowrap; -webkit-overflow-scrolling: touch; }
     .toolbar::-webkit-scrollbar { display: none; }
     
@@ -49,7 +53,7 @@
     .tool-btn.btn-primary { background: #007aff; color: white; border-color: #007aff; font-weight: 600; }
     .tool-btn.btn-hl { background: #fff9db; border-color: #fcc419; color: #856404; font-weight: 600; }
 
-    .color-group { display: inline-flex; align-items: center; gap: 6px; border-left: 1px solid #ddd; padding-left: 8px; margin-left: 2px; flex-shrink: 0; }
+    .color-group { display: inline-flex; align-items: center; gap: 6px; padding-right: 4px; flex-shrink: 0; }
     .color-btn { width: 22px; height: 22px; border-radius: 50%; border: 2px solid #ccc; cursor: pointer; flex-shrink: 0; }
     .color-black { background: #000000; }
     .color-red { background: #e63946; }
@@ -66,7 +70,7 @@
 
     /* 閱讀模式 */
     body.read-mode #noteViewer { pointer-events: none; }
-    body.read-mode .toolbar { display: none; }
+    body.read-mode .sticky-header-container .toolbar { display: none; }
     body.read-mode .diagram-toolbar, body.read-mode .anchor-point, body.read-mode .box-drag-handle { display: none !important; }
 
     /* 樹狀圖畫布 */
@@ -79,10 +83,10 @@
     .diagram-svg line { pointer-events: stroke; cursor: pointer; stroke-width: 3; stroke: #007aff; }
     .diagram-svg line.selected { stroke: #ff3b30 !important; stroke-width: 5 !important; }
     
-    .tree-box { position: absolute; min-width: 100px; background: #fff; border: 2px solid #007aff; border-radius: 6px; font-size: 0.82rem; text-align: center; z-index: 2; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+    .tree-box { position: absolute; min-width: 100px; background: #fff; border: 2px solid #007aff; border-radius: 6px; font-size: 0.82rem; text-align: center; z-index: 2; box-shadow: 0 2px 6px rgba(0,0,0,0.1); touch-action: none; cursor: move; }
     .tree-box.selected { border-color: #ff9500 !important; box-shadow: 0 0 0 3px rgba(255,149,0,0.4) !important; }
-    .box-drag-handle { background: #eef6ff; height: 16px; cursor: move; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom: 1px solid #e0e0e0; }
-    .box-content { padding: 6px 10px; outline: none; }
+    .box-drag-handle { background: #eef6ff; height: 14px; cursor: move; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom: 1px solid #e0e0e0; }
+    .box-content { padding: 6px 10px; outline: none; cursor: text; }
     
     .anchor-point { position: absolute; width: 14px; height: 14px; background: #007aff; border-radius: 50%; cursor: pointer; z-index: 3; border: 1px solid #fff; }
     .anchor-point:hover, .anchor-point.active { transform: scale(1.4); background: #ff9500 !important; }
@@ -91,8 +95,8 @@
     .anchor-left { left: -7px; top: 50%; transform: translateY(-50%); }
     .anchor-right { right: -7px; top: 50%; transform: translateY(-50%); }
 
-    /* Modal 通用彈窗 (手機版自適應) */
-    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); display: none; justify-content: center; align-items: center; z-index: 200; padding: 15px; }
+    /* Modal 通用彈窗 */
+    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); display: none; justify-content: center; align-items: center; z-index: 300; padding: 15px; }
     .modal-card { background: white; padding: 18px; border-radius: 12px; width: 100%; max-width: 450px; box-shadow: 0 4px 20px rgba(0,0,0,0.2); max-height: 80vh; display: flex; flex-direction: column; }
     .modal-card h3 { margin-bottom: 10px; font-size: 0.95rem; }
     .modal-card input { width: 100%; padding: 8px 10px; border: 1px solid #ccc; border-radius: 6px; margin-bottom: 10px; outline: none; font-size: 0.88rem; }
@@ -106,7 +110,6 @@
     .formula-preview { font-size: 0.78rem; color: #555; margin-top: 2px; }
     .btn-insert-sm { background: #007aff; color: white; border: none; padding: 4px 10px; border-radius: 4px; font-size: 0.75rem; cursor: pointer; font-weight: 600; flex-shrink: 0; }
 
-    /* 📱 手機螢幕 Responsive 媒體查詢 */
     @media (max-width: 768px) {
       .menu-toggle { display: block; }
       #sidebar { position: fixed; top: 0; left: 0; height: 100%; transform: translateX(-100%); }
@@ -134,33 +137,36 @@
 
   <!-- 主區域 -->
   <div id="main">
-    <div class="top-bar">
-      <div class="top-bar-left">
-        <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
-        <div class="doc-title" id="currentTitle">選取筆記</div>
-      </div>
-      <label class="mode-switch">
-        <input type="checkbox" id="readModeToggle" onchange="toggleReadMode(this.checked)">
-        📖 閱讀模式
-      </label>
-    </div>
-
-    <!-- 工具列 (手機滑動) -->
-    <div class="toolbar">
-      <button class="tool-btn btn-primary" onclick="openFormulaSearchModal()">⚡ 公式 (輸入/)</button>
-      <button class="tool-btn" onclick="openFracModal()">➕ 分數</button>
-      <button class="tool-btn btn-hl" onmousedown="event.preventDefault(); applyHighlight('#ffec99');">🖍️ 螢光筆</button>
-      <button class="tool-btn" onmousedown="event.preventDefault(); removeHighlight();">🧹 清除格式</button>
-
-      <div class="color-group">
-        <div class="color-btn color-black" title="黑色" onmousedown="event.preventDefault(); applyTextColor('#000000');"></div>
-        <div class="color-btn color-red" title="紅色" onmousedown="event.preventDefault(); applyTextColor('#e63946');"></div>
-        <div class="color-btn color-blue" title="藍色" onmousedown="event.preventDefault(); applyTextColor('rgb(29, 93, 221)');"></div>
+    
+    <!-- 置頂固定區域 -->
+    <div class="sticky-header-container">
+      <div class="top-bar">
+        <div class="top-bar-left">
+          <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+          <div class="doc-title" id="currentTitle">選取筆記</div>
+        </div>
+        <label class="mode-switch">
+          <input type="checkbox" id="readModeToggle" onchange="toggleReadMode(this.checked)">
+          📖 閱讀模式
+        </label>
       </div>
 
-      <button class="tool-btn" style="font-weight:900;" onmousedown="event.preventDefault(); toggleBold();">B</button>
-      <button class="tool-btn" onclick="createDiagramContainer()">🌳 樹狀畫布</button>
-      <button class="tool-btn" onclick="addBoxToActiveDiagram()">🔳 新增文字框</button>
+      <!-- 重排順序後的工具列 -->
+      <div class="toolbar">
+        <div class="color-group">
+          <div class="color-btn color-black" title="黑色" onmousedown="event.preventDefault(); applyTextColor('#000000');"></div>
+          <div class="color-btn color-red" title="紅色" onmousedown="event.preventDefault(); applyTextColor('#e63946');"></div>
+          <div class="color-btn color-blue" title="藍色" onmousedown="event.preventDefault(); applyTextColor('rgb(29, 93, 221)');"></div>
+        </div>
+
+        <button class="tool-btn" style="font-weight:900;" onmousedown="event.preventDefault(); toggleBold();">B 粗體</button>
+        <button class="tool-btn btn-hl" onmousedown="event.preventDefault(); applyHighlight('#ffec99');">🖍️ 螢光筆</button>
+        <button class="tool-btn" onmousedown="event.preventDefault(); removeHighlight();">🧹 清除</button>
+        <button class="tool-btn" onclick="createDiagramContainer()">🌳 樹狀</button>
+        <button class="tool-btn" onclick="addBoxToActiveDiagram()">🔳 文字框</button>
+        <button class="tool-btn" onclick="openFracModal()">➕ 分數</button>
+        <button class="tool-btn btn-primary" onclick="openFormulaSearchModal()">⚡ 公式</button>
+      </div>
     </div>
 
     <!-- 筆記區域 -->
@@ -169,11 +175,11 @@
     </div>
   </div>
 
-  <!-- 🔍 完整會計公式庫 Modal -->
+  <!-- 公式 Modal -->
   <div class="modal-overlay" id="formulaModal">
     <div class="modal-card">
       <h3>🔍 會計常用公式庫</h3>
-      <input type="text" id="formulaSearchInput" placeholder="輸入關鍵字 (如：毛利、天數、周轉率)..." oninput="filterFormulas()">
+      <input type="text" id="formulaSearchInput" placeholder="輸入關鍵字 (如：毛利、天數)..." oninput="filterFormulas()">
       <div class="formula-list" id="formulaListContainer"></div>
       <div class="modal-btns">
         <button class="tool-btn" onclick="closeFormulaModal()">關閉</button>
@@ -181,7 +187,7 @@
     </div>
   </div>
 
-  <!-- ➕ 自訂橫線分數 Modal -->
+  <!-- 分數 Modal -->
   <div class="modal-overlay" id="fracModal">
     <div class="modal-card">
       <h3>➕ 插入自訂橫線分數</h3>
@@ -213,7 +219,6 @@
   </div>
 
   <script>
-    /* 📱 手機選單控制 */
     function toggleSidebar() {
       document.getElementById('sidebar').classList.toggle('open');
       document.getElementById('sidebarOverlay').classList.toggle('show');
@@ -224,7 +229,6 @@
       document.getElementById('sidebarOverlay').classList.remove('show');
     }
 
-    /* 📚 會計常用公式庫 */
     const ACCOUNTING_FORMULAS = [
       { name: "銷貨毛利率", keywords: "毛利 毛利率 銷貨毛利 銷貨收入", html: `毛利率 = <span class="frac-wrap"><span class="frac-num">銷貨毛利</span><span class="frac-den">銷貨收入淨額</span></span> × 100%` },
       { name: "應收帳款周轉天數", keywords: "應收帳款 周轉天數 平均收現期間 收款天數 365", html: `應收帳款周轉天數 = <span class="frac-wrap"><span class="frac-num">365</span><span class="frac-den">應收帳款周轉率</span></span>` },
@@ -258,56 +262,34 @@
 
     function debouncedSave() {
       clearTimeout(saveTimeout);
-      saveTimeout = setTimeout(() => { saveCurrentNote(); }, 400);
+      saveTimeout = setTimeout(() => { saveData(); }, 400);
     }
 
-    /* 🖍️ 螢光筆功能 */
     function applyHighlight(bgColor) {
       const sel = window.getSelection();
-      if (!sel.rangeCount || sel.isCollapsed) return alert("請先用滑鼠/手指選取文字！");
+      if (!sel.rangeCount || sel.isCollapsed) return alert("請先選取文字！");
       document.execCommand('hiliteColor', false, bgColor);
-      clearStyleInherit();
       debouncedSave();
     }
 
-    /* 🧹 清除格式 */
     function removeHighlight() {
       const sel = window.getSelection();
-      if (!sel.rangeCount || sel.isCollapsed) return alert("請先用滑鼠/手指選取文字！");
+      if (!sel.rangeCount || sel.isCollapsed) return alert("請先選取文字！");
       document.execCommand('removeFormat', false, null);
       document.execCommand('hiliteColor', false, 'transparent');
       debouncedSave();
     }
 
-    /* 🎨 文字顏色 */
     function applyTextColor(color) {
       const sel = window.getSelection();
-      if (!sel.rangeCount || sel.isCollapsed) return alert("請先用滑鼠/手指選取文字！");
+      if (!sel.rangeCount || sel.isCollapsed) return alert("請先選取文字！");
       document.execCommand('foreColor', false, color);
-      clearStyleInherit();
       debouncedSave();
     }
 
     function toggleBold() {
       document.execCommand('bold', false, null);
       debouncedSave();
-    }
-
-    function clearStyleInherit() {
-      const sel = window.getSelection();
-      if (sel.rangeCount > 0) {
-        const range = sel.getRangeAt(0);
-        range.collapse(false);
-        const span = document.createElement('span');
-        span.innerHTML = '&#8203;';
-        span.style.backgroundColor = 'transparent';
-        span.style.color = '#333333';
-        range.insertNode(span);
-        range.setStartAfter(span);
-        range.setEndAfter(span);
-        sel.removeAllRanges();
-        sel.addRange(range);
-      }
     }
 
     function handleEditorKeyUp(e) {
@@ -434,7 +416,7 @@
 
     function addBoxToActiveDiagram() {
       const containers = document.querySelectorAll('.diagram-container');
-      if (containers.length === 0) return alert("請先點擊「🌳 樹狀畫布」！");
+      if (containers.length === 0) return alert("請先點擊「🌳 樹狀」建立畫布！");
       const target = containers[containers.length - 1];
       const boxId = "box_" + Date.now();
       
@@ -457,7 +439,6 @@
       debouncedSave();
     }
 
-    /* 拖曳與連線 (支援觸控與鼠標) */
     function getPointerPos(e) {
       if (e.touches && e.touches.length > 0) {
         return { x: e.touches[0].clientX, y: e.touches[0].clientY };
@@ -465,10 +446,24 @@
       return { x: e.clientX, y: e.clientY };
     }
 
+    /* 📱 樹狀圖操作優化：點擊選取變橘框、移動、收起鍵盤 */
     function handleStart(e) {
       if (document.body.classList.contains('read-mode')) return;
-      if (e.target.classList.contains('box-drag-handle')) {
-        const box = e.target.closest('.tree-box');
+
+      const box = e.target.closest('.tree-box');
+      
+      // 點擊文字框
+      if (box && !e.target.classList.contains('anchor-point')) {
+        clearSelection();
+        selectedElement = box;
+        box.classList.add('selected'); // 變橘色框
+
+        // 如果點擊的是邊框或拖曳區（而非內部正在打字），收起手機鍵盤
+        if (!e.target.classList.contains('box-content')) {
+          if (document.activeElement) document.activeElement.blur();
+        }
+
+        // 全框皆可拖曳
         isDraggingBox = box;
         const pos = getPointerPos(e);
         dragStartX = pos.x;
@@ -477,18 +472,13 @@
         boxInitialTop = box.offsetTop;
       }
 
-      const box = e.target.closest('.tree-box');
-      if (box && !e.target.classList.contains('anchor-point')) {
-        clearSelection();
-        selectedElement = box;
-        box.classList.add('selected');
-      }
-
+      // 點擊連線選取
       if (e.target.tagName === 'line') {
         e.stopPropagation();
         clearSelection();
         selectedElement = e.target;
         e.target.classList.add('selected');
+        if (document.activeElement) document.activeElement.blur();
       }
     }
 
@@ -599,7 +589,7 @@
       }
     }
 
-    /* 側邊欄與資料管理 */
+    /* 側邊欄與資料保存 */
     function renderSidebar() {
       const list = document.getElementById("chapterList");
       list.innerHTML = "";
@@ -628,7 +618,7 @@
           item.onclick = (e) => {
             if(!e.target.classList.contains('micro-btn')) {
               loadSec(sec.id, `${secNumText} ${sec.title}`);
-              closeSidebar(); // 手機選完自動關閉選單
+              closeSidebar();
             }
           };
 
@@ -748,7 +738,11 @@
       loadSec(currentSecId, val);
     }
 
-    function saveData() { localStorage.setItem("acc_struct_v12", JSON.stringify(chapters)); }
+    function saveData() { 
+      let sec = getSecObj(currentSecId);
+      if (sec) sec.content = document.getElementById("noteViewer").innerHTML;
+      localStorage.setItem("acc_struct_v12", JSON.stringify(chapters)); 
+    }
 
     window.onload = () => {
       renderSidebar();
