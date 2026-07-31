@@ -6,14 +6,15 @@
   <title>會計學全功能筆記系統</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; display: flex; height: 100vh; background: #f8f9fa; color: #333; overflow: hidden; position: relative; }
+    html, body { height: 100%; width: 100%; overflow: hidden; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; display: flex; background: #f8f9fa; color: #333; position: relative; }
     
     /* 側邊欄 Overlay 遮罩 */
     #sidebarOverlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.4); z-index: 190; display: none; }
     #sidebarOverlay.show { display: block; }
 
     /* 側邊欄 */
-    #sidebar { width: 290px; background: #ffffff; border-right: 1px solid #e0e0e0; display: flex; flex-direction: column; z-index: 200; transition: transform 0.25s ease; }
+    #sidebar { width: 290px; background: #ffffff; border-right: 1px solid #e0e0e0; display: flex; flex-direction: column; z-index: 200; transition: transform 0.25s ease; flex-shrink: 0; height: 100vh; }
     .sidebar-header { padding: 14px 16px; font-weight: bold; font-size: 1rem; border-bottom: 1px solid #eee; background: #fcfcfc; color: #111; display: flex; justify-content: space-between; align-items: center; }
     .add-btn-group { padding: 8px 10px; display: flex; gap: 6px; border-bottom: 1px solid #eee; }
     
@@ -31,18 +32,23 @@
     .micro-btn:hover { background: rgba(0,0,0,0.1); color: #000; }
 
     /* 主區域 */
-    #main { flex: 1; display: flex; flex-direction: column; height: 100vh; overflow: hidden; background: #fff; width: 100%; position: relative; }
+    #main { flex: 1; display: flex; flex-direction: column; height: 100vh; min-width: 0; overflow: hidden; background: #fff; position: relative; }
     
-    /* 置頂固定選單容器 */
-    .sticky-header-container { position: sticky; top: 0; z-index: 80; background: #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+    /* 強制置頂固定選單容器 */
+    .sticky-header-container { width: 100%; background: #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.06); z-index: 100; flex-shrink: 0; }
 
-    .top-bar { padding: 10px 14px; border-bottom: 1px solid #e0e0e0; display: flex; align-items: center; justify-content: space-between; background: #fafafa; gap: 10px; }
-    .top-bar-left { display: flex; align-items: center; gap: 10px; min-width: 0; }
-    .menu-toggle { display: none; font-size: 1.2rem; background: none; border: none; cursor: pointer; padding: 4px 8px; border-radius: 4px; }
+    .top-bar { padding: 8px 12px; border-bottom: 1px solid #e0e0e0; display: flex; align-items: center; justify-content: space-between; background: #fafafa; gap: 8px; }
+    .top-bar-left { display: flex; align-items: center; gap: 8px; min-width: 0; flex: 1; }
+    .menu-toggle { display: none; font-size: 1.2rem; background: none; border: none; cursor: pointer; padding: 4px 6px; border-radius: 4px; flex-shrink: 0; }
     .menu-toggle:hover { background: #e9ecef; }
 
-    .doc-title { font-size: 0.95rem; font-weight: bold; color: #222; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .mode-switch { display: flex; align-items: center; gap: 4px; font-size: 0.8rem; font-weight: 600; color: #444; cursor: pointer; user-select: none; flex-shrink: 0; }
+    /* 精簡標題呈現 */
+    .doc-title { font-size: 0.92rem; font-weight: 700; color: #111; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; }
+
+    /* 🔒/🔓 鎖頭按鈕切換 */
+    .lock-btn { display: inline-flex; align-items: center; gap: 4px; padding: 5px 10px; background: #e9ecef; border: 1px solid #ced4da; border-radius: 20px; font-size: 0.82rem; font-weight: 600; cursor: pointer; user-select: none; flex-shrink: 0; transition: all 0.2s; }
+    .lock-btn:hover { background: #dee2e6; }
+    .lock-btn.is-read { background: #fff3bf; border-color: #fcc419; color: #856404; }
 
     /* 工具列 (橫向滑動) */
     .toolbar { display: flex; gap: 8px; padding: 8px 12px; background: #f8f9fa; border-bottom: 1px solid #e0e0e0; align-items: center; overflow-x: auto; white-space: nowrap; -webkit-overflow-scrolling: touch; }
@@ -59,8 +65,8 @@
     .color-red { background: #e63946; }
     .color-blue { background: rgb(29, 93, 221); }
 
-    /* 筆記區域 */
-    .editor-wrapper { flex: 1; padding: 16px 18px; overflow-y: auto; position: relative; }
+    /* 筆記可滾動區域 */
+    .editor-wrapper { flex: 1; padding: 16px; overflow-y: auto; position: relative; height: 100%; }
     #noteViewer { min-height: 100%; font-size: 0.98rem; line-height: 1.8; color: #2b2b2b; outline: none; padding-bottom: 120px; }
     
     /* 分數結構 */
@@ -68,9 +74,9 @@
     .frac-num { border-bottom: 1.5px solid #333; padding: 1px 2px; }
     .frac-den { padding: 1px 2px; }
 
-    /* 閱讀模式 */
+    /* 閱讀模式鎖定 */
     body.read-mode #noteViewer { pointer-events: none; }
-    body.read-mode .sticky-header-container .toolbar { display: none; }
+    body.read-mode .toolbar { display: none !important; }
     body.read-mode .diagram-toolbar, body.read-mode .anchor-point, body.read-mode .box-drag-handle, body.read-mode .box-quick-del { display: none !important; }
 
     /* 樹狀圖畫布 */
@@ -80,16 +86,15 @@
     .diagram-btn.btn-del { color: #ffffff; background: #d9534f; border-color: #d9534f; }
     .diagram-btn.btn-del:hover { background: #c9302c; }
     
-    .diagram-svg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
-    .diagram-svg line { pointer-events: stroke; cursor: pointer; stroke-width: 4; stroke: #007aff; }
-    .diagram-svg line.selected { stroke: #ff3b30 !important; stroke-width: 6 !important; }
+    .diagram-svg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; }
+    .diagram-svg line { pointer-events: stroke; cursor: pointer; stroke-width: 6; stroke: #007aff; }
+    .diagram-svg line.selected { stroke: #ff3b30 !important; stroke-width: 8 !important; }
     
-    /* 文字框樣式與一鍵刪除鍵 */
+    /* 文字框與一鍵刪除鍵 */
     .tree-box { position: absolute; min-width: 100px; background: #fff; border: 2px solid #007aff; border-radius: 6px; font-size: 0.82rem; text-align: center; z-index: 2; box-shadow: 0 2px 6px rgba(0,0,0,0.1); touch-action: none; cursor: move; }
     .tree-box.selected { border-color: #ff9500 !important; box-shadow: 0 0 0 3px rgba(255,149,0,0.4) !important; }
     .box-drag-handle { background: #eef6ff; height: 16px; cursor: move; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom: 1px solid #e0e0e0; }
     
-    /* 文字框右上角快速刪除按鈕 ✕ */
     .box-quick-del { position: absolute; top: -8px; right: -8px; width: 20px; height: 20px; background: #ff3b30; color: white; border-radius: 50%; font-size: 12px; font-weight: bold; line-height: 20px; text-align: center; cursor: pointer; z-index: 10; box-shadow: 0 1px 3px rgba(0,0,0,0.3); border: 1px solid #fff; }
     .box-quick-del:hover { background: #d9251d; transform: scale(1.1); }
 
@@ -102,7 +107,7 @@
     .anchor-left { left: -7px; top: 50%; transform: translateY(-50%); }
     .anchor-right { right: -7px; top: 50%; transform: translateY(-50%); }
 
-    /* Modal 通用彈窗 */
+    /* Modal 彈窗 */
     .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); display: none; justify-content: center; align-items: center; z-index: 300; padding: 15px; }
     .modal-card { background: white; padding: 18px; border-radius: 12px; width: 100%; max-width: 450px; box-shadow: 0 4px 20px rgba(0,0,0,0.2); max-height: 80vh; display: flex; flex-direction: column; }
     .modal-card h3 { margin-bottom: 10px; font-size: 0.95rem; }
@@ -126,7 +131,7 @@
 </head>
 <body>
 
-  <!-- 手機版側邊欄背景遮罩 -->
+  <!-- 手機版側邊欄遮罩 -->
   <div id="sidebarOverlay" onclick="closeSidebar()"></div>
 
   <!-- 左側選單 -->
@@ -145,20 +150,23 @@
   <!-- 主區域 -->
   <div id="main">
     
-    <!-- 置頂固定區域 -->
+    <!-- 強制置頂固定頂部區 -->
     <div class="sticky-header-container">
       <div class="top-bar">
         <div class="top-bar-left">
           <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
-          <div class="doc-title" id="currentTitle">選取筆記</div>
+          <!-- 簡化後的標題：章節 - 小節內容 -->
+          <div class="doc-title" id="currentTitle">筆記</div>
         </div>
-        <label class="mode-switch">
-          <input type="checkbox" id="readModeToggle" onchange="toggleReadMode(this.checked)">
-          📖 閱讀模式
-        </label>
+        
+        <!-- 🔒 / 🔓 閱讀與編輯模式開關 -->
+        <button class="lock-btn" id="lockToggleBtn" onclick="toggleReadMode()">
+          <span id="lockIcon">🔓</span>
+          <span id="lockText">編輯模式</span>
+        </button>
       </div>
 
-      <!-- 重排順序後的工具列 -->
+      <!-- 工具列 -->
       <div class="toolbar">
         <div class="color-group">
           <div class="color-btn color-black" title="黑色" onmousedown="event.preventDefault(); applyTextColor('#000000');"></div>
@@ -176,7 +184,7 @@
       </div>
     </div>
 
-    <!-- 筆記區域 -->
+    <!-- 筆記編輯區域 -->
     <div class="editor-wrapper">
       <div id="noteViewer" contenteditable="true" oninput="debouncedSave()" onkeyup="handleEditorKeyUp(event)"></div>
     </div>
@@ -252,15 +260,14 @@
       { name: "每股盈餘 (EPS)", keywords: "每股盈餘 EPS 股利 股數", html: `EPS = <span class="frac-wrap"><span class="frac-num">本期淨利 - 特別股股利</span><span class="frac-den">普通股加權平均流通在外股數</span></span>` }
     ];
 
-    const ZH_NUMS = ["一", "二", "三", "四", "五", "六", "七", "八", "九", "十"];
-
     let savedRange = null; 
     let selectedElement = null;
     let activeAnchor = null;
     let isDraggingBox = null;
     let dragStartX = 0, dragStartY = 0, boxInitialLeft = 0, boxInitialTop = 0;
+    let isReadMode = false;
 
-    let chapters = JSON.parse(localStorage.getItem("acc_struct_v13")) || [
+    let chapters = JSON.parse(localStorage.getItem("acc_struct_v14")) || [
       { title: "會計基礎", sections: [{ id: "sec_1", title: "會計方程式", content: "會計基本恆等式：資產 = 負債 + 權益" }] },
       { title: "財務分析", sections: [{ id: "sec_2", title: "周轉天數與毛利率", content: "點擊左上角 ☰ 可展開章節切換。" }] }
     ];
@@ -402,7 +409,7 @@
       debouncedSave();
     }
 
-    /* 🌳 樹狀圖畫布 */
+    /* 🌳 樹狀圖畫布機制 */
     function createDiagramContainer() {
       const id = "diag_" + Date.now();
       const html = `
@@ -449,7 +456,7 @@
       debouncedSave();
     }
 
-    /* 一鍵刪除文字框（連同關聯的連線） */
+    /* 刪除文字框及其連線 */
     function removeTreeBox(boxId) {
       const box = document.getElementById(boxId);
       if (!box) return;
@@ -506,7 +513,6 @@
         clearSelection();
         selectedElement = e.target;
         e.target.classList.add('selected');
-        if (document.activeElement) document.activeElement.blur();
       }
     }
 
@@ -537,18 +543,20 @@
     document.addEventListener('touchmove', handleMove, {passive: false});
     document.addEventListener('touchend', handleEnd);
 
-    /* 💡 增加「雙擊連線」直接刪除功能 */
+    /* 💡 全局精準雙擊（Double Click）刪除連線修復 */
     document.addEventListener('dblclick', (e) => {
-      if (e.target.tagName === 'line') {
+      if (isReadMode) return;
+      if (e.target && e.target.tagName === 'line') {
         e.stopPropagation();
+        e.preventDefault();
         e.target.remove();
         selectedElement = null;
         debouncedSave();
       }
-    });
+    }, true);
 
     document.addEventListener('click', (e) => {
-      if (document.body.classList.contains('read-mode')) return;
+      if (isReadMode) return;
 
       if (e.target.classList.contains('anchor-point')) {
         e.stopPropagation();
@@ -617,7 +625,6 @@
       }
     }
 
-    /* 刪除按鈕功能調優 */
     function deleteSelectedElement(btn) {
       if (selectedElement) {
         if (selectedElement.classList.contains('tree-box')) {
@@ -633,11 +640,11 @@
         }
         debouncedSave();
       } else {
-        alert("提示：請先點選「連線」或「文字框」使其變成選取狀態（文字框變橘框/線條變紅線），再點擊此刪除按鈕。\n\n💡 小撇步：連線也可以直接「雙擊(快點兩下)」來快速刪除！");
+        alert("提示：請先點選「連線」或「文字框」使其變成選取狀態（變紅線/橘框），再點擊刪除按鈕。\n\n💡 快速鍵：連線上連點兩下（雙擊）可直接刪除！");
       }
     }
 
-    /* 📌 完整章節名稱顯示與側邊欄渲染 */
+    /* 📌 側邊欄與極簡標題渲染 */
     function renderSidebar() {
       const list = document.getElementById("chapterList");
       list.innerHTML = "";
@@ -645,11 +652,10 @@
       chapters.forEach((chap, cIdx) => {
         const cBox = document.createElement("div");
         cBox.className = "chap-box";
-        const chapTitleFull = `第${ZH_NUMS[cIdx] || (cIdx + 1)}章 ${chap.title}`;
         
         cBox.innerHTML = `
           <div class="chap-header">
-            <span>${chapTitleFull}</span>
+            <span>${chap.title}</span>
             <div class="ctrl-btns">
               <button class="micro-btn" onclick="moveChap(${cIdx}, -1)">▲</button>
               <button class="micro-btn" onclick="moveChap(${cIdx}, 1)">▼</button>
@@ -659,18 +665,18 @@
         `;
 
         chap.sections.forEach((sec, sIdx) => {
-          const secTitleFull = `${cIdx + 1}.${sIdx + 1} ${sec.title}`;
           const item = document.createElement("div");
           item.className = `sec-item ${sec.id === currentSecId ? 'active' : ''}`;
           item.onclick = (e) => {
             if(!e.target.classList.contains('micro-btn')) {
-              loadSec(sec.id, `${chapTitleFull} - ${secTitleFull}`);
+              // 標題採用：標題 + 小節內容
+              loadSec(sec.id, `${chap.title} - ${sec.title}`);
               closeSidebar();
             }
           };
 
           item.innerHTML = `
-            <span>${secTitleFull}</span>
+            <span>${sec.title}</span>
             <div class="ctrl-btns">
               <button class="micro-btn" onclick="moveSec(${cIdx}, ${sIdx}, -1)">▲</button>
               <button class="micro-btn" onclick="moveSec(${cIdx}, ${sIdx}, 1)">▼</button>
@@ -720,12 +726,10 @@
     }
 
     function refreshCurrentTitle() {
-      chapters.forEach((c, cIdx) => {
-        c.sections.forEach((s, sIdx) => {
+      chapters.forEach((c) => {
+        c.sections.forEach((s) => {
           if (s.id === currentSecId) {
-            const chapTitleFull = `第${ZH_NUMS[cIdx] || (cIdx + 1)}章 ${c.title}`;
-            const secTitleFull = `${cIdx + 1}.${sIdx + 1} ${s.title}`;
-            document.getElementById("currentTitle").innerText = `${chapTitleFull} - ${secTitleFull}`;
+            document.getElementById("currentTitle").innerText = `${c.title} - ${s.title}`;
           }
         });
       });
@@ -751,9 +755,26 @@
       return null;
     }
 
-    function toggleReadMode(isReadMode) {
-      document.body.classList.toggle('read-mode', isReadMode);
-      document.getElementById('noteViewer').setAttribute('contenteditable', !isReadMode);
+    /* 🔒/🔓 閱讀/編輯模式按鈕切換機制 */
+    function toggleReadMode() {
+      isReadMode = !isReadMode;
+      const btn = document.getElementById('lockToggleBtn');
+      const icon = document.getElementById('lockIcon');
+      const text = document.getElementById('lockText');
+
+      if (isReadMode) {
+        document.body.classList.add('read-mode');
+        btn.classList.add('is-read');
+        icon.innerText = '🔒';
+        text.innerText = '閱讀模式';
+        document.getElementById('noteViewer').setAttribute('contenteditable', 'false');
+      } else {
+        document.body.classList.remove('read-mode');
+        btn.classList.remove('is-read');
+        icon.innerText = '🔓';
+        text.innerText = '編輯模式';
+        document.getElementById('noteViewer').setAttribute('contenteditable', 'true');
+      }
     }
 
     function openModal(type) {
@@ -767,7 +788,7 @@
         const select = document.getElementById("chapterSelect");
         select.innerHTML = "";
         chapters.forEach((c, idx) => { 
-          select.innerHTML += `<option value="${idx}">第${ZH_NUMS[idx] || (idx+1)}章 ${c.title}</option>`; 
+          select.innerHTML += `<option value="${idx}">${c.title}</option>`; 
         });
       }
       document.getElementById("modalInput").value = "";
@@ -788,10 +809,7 @@
         const newSecId = "sec_" + Date.now();
         chapters[chIdx].sections.push({ id: newSecId, title: val, content: "點擊開始記錄..." });
         
-        const chapTitleFull = `第${ZH_NUMS[chIdx] || (chIdx + 1)}章 ${chapters[chIdx].title}`;
-        const secTitleFull = `${chIdx + 1}.${chapters[chIdx].sections.length} ${val}`;
-        
- loadSec(newSecId, `${chapTitleFull} - ${secTitleFull}`);
+        loadSec(newSecId, `${chapters[chIdx].title} - ${val}`);
       }
       closeModal();
     }
@@ -799,7 +817,7 @@
     function saveData() { 
       let sec = getSecObj(currentSecId);
       if (sec) sec.content = document.getElementById("noteViewer").innerHTML;
-      localStorage.setItem("acc_struct_v13", JSON.stringify(chapters)); 
+      localStorage.setItem("acc_struct_v14", JSON.stringify(chapters)); 
     }
 
     window.onload = () => {
