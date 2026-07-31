@@ -3,17 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>會計學全功能筆記系統</title>
+  <title>會計學全功能筆記系統 (雲端同步版)</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body { height: 100%; width: 100%; overflow: hidden; }
     body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; display: flex; background: #f8f9fa; color: #333; position: relative; }
     
-    /* 側邊欄 Overlay 遮罩 */
     #sidebarOverlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.4); z-index: 190; display: none; }
     #sidebarOverlay.show { display: block; }
 
-    /* 側邊欄 */
     #sidebar { width: 290px; background: #ffffff; border-right: 1px solid #e0e0e0; display: flex; flex-direction: column; z-index: 200; transition: transform 0.25s ease; flex-shrink: 0; height: 100vh; }
     .sidebar-header { padding: 14px 16px; font-weight: bold; font-size: 1rem; border-bottom: 1px solid #eee; background: #fcfcfc; color: #111; display: flex; justify-content: space-between; align-items: center; }
     .add-btn-group { padding: 8px 10px; display: flex; gap: 6px; border-bottom: 1px solid #eee; }
@@ -31,26 +29,23 @@
     .micro-btn { background: none; border: none; font-size: 0.75rem; color: #666; cursor: pointer; padding: 2px 6px; border-radius: 3px; }
     .micro-btn:hover { background: rgba(0,0,0,0.1); color: #000; }
 
-    /* 主區域 */
     #main { flex: 1; display: flex; flex-direction: column; height: 100vh; min-width: 0; overflow: hidden; background: #fff; position: relative; }
-    
     .sticky-header-container { width: 100%; background: #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.06); z-index: 100; flex-shrink: 0; }
 
     .top-bar { padding: 8px 12px; border-bottom: 1px solid #e0e0e0; display: flex; align-items: center; justify-content: space-between; background: #fafafa; gap: 8px; }
     .top-bar-left { display: flex; align-items: center; gap: 8px; min-width: 0; flex: 1; }
     .menu-toggle { display: none; font-size: 1.2rem; background: none; border: none; cursor: pointer; padding: 4px 6px; border-radius: 4px; flex-shrink: 0; }
-    .menu-toggle:hover { background: #e9ecef; }
-
     .doc-title { font-size: 0.92rem; font-weight: 700; color: #111; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; }
 
-    .lock-btn { display: inline-flex; align-items: center; gap: 4px; padding: 5px 10px; background: #e9ecef; border: 1px solid #ced4da; border-radius: 20px; font-size: 0.82rem; font-weight: 600; cursor: pointer; user-select: none; flex-shrink: 0; transition: all 0.2s; }
-    .lock-btn:hover { background: #dee2e6; }
+    .sync-status { font-size: 0.75rem; color: #007aff; font-weight: bold; margin-right: 8px; }
+
+    .lock-btn { display: inline-flex; align-items: center; gap: 4px; padding: 5px 10px; background: #e9ecef; border: 1px solid #ced4da; border-radius: 20px; font-size: 0.82rem; font-weight: 600; cursor: pointer; user-select: none; flex-shrink: 0; }
     .lock-btn.is-read { background: #fff3bf; border-color: #fcc419; color: #856404; }
 
-    .toolbar { display: flex; gap: 8px; padding: 8px 12px; background: #f8f9fa; border-bottom: 1px solid #e0e0e0; align-items: center; overflow-x: auto; white-space: nowrap; -webkit-overflow-scrolling: touch; }
+    .toolbar { display: flex; gap: 8px; padding: 8px 12px; background: #f8f9fa; border-bottom: 1px solid #e0e0e0; align-items: center; overflow-x: auto; white-space: nowrap; }
     .toolbar::-webkit-scrollbar { display: none; }
     
-    .tool-btn { padding: 6px 10px; background: #fff; border: 1px solid #ced4da; border-radius: 6px; font-size: 0.8rem; cursor: pointer; font-weight: 500; display: inline-flex; align-items: center; gap: 4px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); flex-shrink: 0; }
+    .tool-btn { padding: 6px 10px; background: #fff; border: 1px solid #ced4da; border-radius: 6px; font-size: 0.8rem; cursor: pointer; font-weight: 500; display: inline-flex; align-items: center; gap: 4px; flex-shrink: 0; }
     .tool-btn:hover { background: #e9ecef; }
     .tool-btn.btn-primary { background: #007aff; color: white; border-color: #007aff; font-weight: 600; }
     .tool-btn.btn-hl { background: #fff9db; border-color: #fcc419; color: #856404; font-weight: 600; }
@@ -61,60 +56,41 @@
     .color-red { background: #e63946; }
     .color-blue { background: rgb(29, 93, 221); }
 
-    /* 筆記可滾動區域 (兼自由畫布) */
     .editor-wrapper { flex: 1; padding: 20px; overflow-y: auto; position: relative; height: 100%; }
     #noteViewer { min-height: 100%; font-size: 0.98rem; line-height: 1.8; color: #2b2b2b; outline: none; padding-bottom: 250px; position: relative; z-index: 1; }
     
-    /* 橫向全覆蓋 SVG 連線層 */
     #globalSvg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; pointer-events: none; }
     #globalSvg line { pointer-events: stroke; cursor: pointer; stroke-width: 4; stroke: #007aff; }
     #globalSvg line.selected { stroke: #ff3b30 !important; stroke-width: 6 !important; }
 
-    /* 連線獨立刪除按鈕 */
-    .line-del-btn { position: absolute; width: 20px; height: 20px; background: #ff3b30; color: white; border-radius: 50%; font-size: 12px; font-weight: bold; line-height: 20px; text-align: center; cursor: pointer; z-index: 15; box-shadow: 0 1px 3px rgba(0,0,0,0.3); border: 1px solid #fff; display: none; transform: translate(-50%, -50%); }
+    .line-del-btn { position: absolute; width: 20px; height: 20px; background: #ff3b30; color: white; border-radius: 50%; font-size: 12px; font-weight: bold; line-height: 20px; text-align: center; cursor: pointer; z-index: 15; display: none; transform: translate(-50%, -50%); }
 
-    /* 分數結構 */
     .frac-wrap { display: inline-flex; flex-direction: column; vertical-align: middle; text-align: center; font-size: 0.9em; padding: 0 3px; line-height: 1.1; }
     .frac-num { border-bottom: 1.5px solid #333; padding: 1px 2px; }
     .frac-den { padding: 1px 2px; }
 
-    /* 閱讀模式鎖定 */
     body.read-mode #noteViewer { pointer-events: none; }
     body.read-mode .toolbar { display: none !important; }
     body.read-mode .anchor-point, body.read-mode .box-drag-handle, body.read-mode .box-quick-del, body.read-mode .line-del-btn { display: none !important; }
-    body.read-mode .tree-box { border-color: #d0d0d0; resize: none; }
 
-    /* 自由拖拽文字框 (可調整長寬 + 獨立刪除) */
     .tree-box { position: absolute; min-width: 120px; min-height: 50px; background: #fff; border: 2px solid #007aff; border-radius: 8px; font-size: 0.85rem; z-index: 10; box-shadow: 0 3px 8px rgba(0,0,0,0.12); touch-action: none; resize: both; overflow: auto; display: inline-block; }
     .tree-box.selected { border-color: #ff9500 !important; box-shadow: 0 0 0 3px rgba(255,149,0,0.4) !important; }
     
     .box-drag-handle { background: #f0f4f8; height: 18px; cursor: move; border-top-left-radius: 6px; border-top-right-radius: 6px; border-bottom: 1px solid #e0e0e0; }
-    
-    .box-quick-del { position: absolute; top: -8px; right: -8px; width: 22px; height: 22px; background: #ff3b30; color: white; border-radius: 50%; font-size: 13px; font-weight: bold; line-height: 22px; text-align: center; cursor: pointer; z-index: 30; box-shadow: 0 2px 4px rgba(0,0,0,0.2); border: 1.5px solid #fff; user-select: none; }
-    .box-quick-del:hover { background: #d9251d; transform: scale(1.15); }
+    .box-quick-del { position: absolute; top: -8px; right: -8px; width: 22px; height: 22px; background: #ff3b30; color: white; border-radius: 50%; font-size: 13px; font-weight: bold; line-height: 22px; text-align: center; cursor: pointer; z-index: 30; border: 1.5px solid #fff; }
 
     .box-content { padding: 6px 10px; outline: none; cursor: text; min-height: 30px; }
     
     .anchor-point { position: absolute; width: 14px; height: 14px; background: #007aff; border-radius: 50%; cursor: pointer; z-index: 20; border: 1px solid #fff; }
-    .anchor-point:hover, .anchor-point.active { transform: scale(1.4); background: #ff9500 !important; }
     .anchor-top { top: -7px; left: 50%; transform: translateX(-50%); }
     .anchor-bottom { bottom: -7px; left: 50%; transform: translateX(-50%); }
     .anchor-left { left: -7px; top: 50%; transform: translateY(-50%); }
     .anchor-right { right: -7px; top: 50%; transform: translateY(-50%); }
 
-    /* Modal 彈窗 */
     .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); display: none; justify-content: center; align-items: center; z-index: 300; padding: 15px; }
-    .modal-card { background: white; padding: 18px; border-radius: 12px; width: 100%; max-width: 450px; box-shadow: 0 4px 20px rgba(0,0,0,0.2); max-height: 80vh; display: flex; flex-direction: column; }
-    .modal-card h3 { margin-bottom: 10px; font-size: 0.95rem; }
-    .modal-card input { width: 100%; padding: 8px 10px; border: 1px solid #ccc; border-radius: 6px; margin-bottom: 10px; outline: none; font-size: 0.88rem; }
+    .modal-card { background: white; padding: 18px; border-radius: 12px; width: 100%; max-width: 450px; box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
+    .modal-card input { width: 100%; padding: 8px 10px; border: 1px solid #ccc; border-radius: 6px; margin-bottom: 10px; }
     .modal-btns { display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px; }
-
-    .formula-list { overflow-y: auto; flex: 1; border: 1px solid #eee; border-radius: 6px; max-height: 280px; }
-    .formula-item { padding: 8px 10px; border-bottom: 1px solid #f0f0f0; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
-    .formula-item:hover { background: #eef6ff; }
-    .formula-title { font-weight: bold; font-size: 0.82rem; color: #111; }
-    .formula-preview { font-size: 0.78rem; color: #555; margin-top: 2px; }
-    .btn-insert-sm { background: #007aff; color: white; border: none; padding: 4px 10px; border-radius: 4px; font-size: 0.75rem; cursor: pointer; font-weight: 600; flex-shrink: 0; }
 
     @media (max-width: 768px) {
       .menu-toggle { display: block; }
@@ -127,7 +103,6 @@
 
   <div id="sidebarOverlay" onclick="closeSidebar()"></div>
 
-  <!-- 左側選單 -->
   <div id="sidebar">
     <div class="sidebar-header">
       <span>📚 會計學全功能筆記</span>
@@ -140,9 +115,7 @@
     <div class="chapter-list" id="chapterList"></div>
   </div>
 
-  <!-- 主區域 -->
   <div id="main">
-    
     <div class="sticky-header-container">
       <div class="top-bar">
         <div class="top-bar-left">
@@ -150,13 +123,14 @@
           <div class="doc-title" id="currentTitle">筆記</div>
         </div>
         
+        <span class="sync-status" id="syncStatus">☁️ 雲端連線中...</span>
+
         <button class="lock-btn" id="lockToggleBtn" onclick="toggleReadMode()">
           <span id="lockIcon">🔓</span>
           <span id="lockText">編輯模式</span>
         </button>
       </div>
 
-      <!-- 工具列 -->
       <div class="toolbar">
         <div class="color-group">
           <div class="color-btn color-black" title="黑色" onmousedown="event.preventDefault(); applyTextColor('#000000');"></div>
@@ -168,14 +142,14 @@
         <button class="tool-btn btn-hl" onmousedown="event.preventDefault(); applyHighlight('#ffec99');">🖍️ 螢光筆</button>
         <button class="tool-btn" onmousedown="event.preventDefault(); removeHighlight();">🧹 清除</button>
         <button class="tool-btn btn-primary" onclick="addFreeBox()">🔳 新增文字框</button>
-        <button class="tool-btn" onclick="openFracModal()">➕ 分數</button>
-        <button class="tool-btn" onclick="openFormulaSearchModal()">⚡ 公式</button>
+        <button class="tool-btn" onclick="exportData()">📥 匯出備份</button>
+        <button class="tool-btn" onclick="importData()">📤 載入備份</button>
+        <input type="file" id="importInput" style="display:none;" onchange="handleFileSelect(event)">
       </div>
     </div>
 
-    <!-- 筆記畫布區域 -->
     <div class="editor-wrapper" id="canvasWrapper">
-      <div class="line-del-btn" id="globalLineDelBtn" title="刪除連線" onclick="removeSelectedLine()">✕</div>
+      <div class="line-del-btn" id="globalLineDelBtn" onclick="removeSelectedLine()">✕</div>
       <svg id="globalSvg">
         <defs>
           <marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
@@ -183,38 +157,10 @@
           </marker>
         </defs>
       </svg>
-      <div id="noteViewer" contenteditable="true" oninput="debouncedSave()" onkeyup="handleEditorKeyUp(event)"></div>
+      <div id="noteViewer" contenteditable="true" oninput="debouncedSave()"></div>
     </div>
   </div>
 
-  <!-- 公式 Modal -->
-  <div class="modal-overlay" id="formulaModal">
-    <div class="modal-card">
-      <h3>🔍 會計常用公式庫</h3>
-      <input type="text" id="formulaSearchInput" placeholder="輸入關鍵字 (如：毛利、天數)..." oninput="filterFormulas()">
-      <div class="formula-list" id="formulaListContainer"></div>
-      <div class="modal-btns">
-        <button class="tool-btn" onclick="closeFormulaModal()">關閉</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- 分數 Modal -->
-  <div class="modal-overlay" id="fracModal">
-    <div class="modal-card">
-      <h3>➕ 插入自訂橫線分數</h3>
-      <label style="font-size:0.75rem; color:#666;">分子：</label>
-      <input type="text" id="fracNumInput" placeholder="例如：銷貨毛利">
-      <label style="font-size:0.75rem; color:#666;">分母：</label>
-      <input type="text" id="fracDenInput" placeholder="例如：銷貨收入淨額">
-      <div class="modal-btns">
-        <button class="tool-btn" onclick="closeFracModal()">取消</button>
-        <button class="btn-action" style="flex:none; padding: 6px 16px;" onclick="submitFracModal()">插入</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- 新增章節/小節 Modal -->
   <div class="modal-overlay" id="inputModal">
     <div class="modal-card">
       <h3 id="modalTitle">新增</h3>
@@ -230,7 +176,127 @@
     </div>
   </div>
 
+  <!-- 引入 Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    // 帶入你的專屬 Firebase Config
+    const firebaseConfig = {
+      apiKey: "AIzaSyABw6cYyCOpgBV3yRlqeYJ9B33pVEQizZA",
+      authDomain: "olaf-travel.firebaseapp.com",
+      databaseURL: "https://olaf-travel-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "olaf-travel",
+      storageBucket: "olaf-travel.firebasestorage.app",
+      messagingSenderId: "398106561083",
+      appId: "1:398106561083:web:9c617bd87060d57d84ea1e",
+      measurementId: "G-Q9SQY8JKM5"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    
+    window.db = db;
+    window.doc = doc;
+    window.setDoc = setDoc;
+    window.onSnapshot = onSnapshot;
+
+    // 啟動自動連線與實時同步
+    initCloudSync();
+  </script>
+
   <script>
+    let chapters = JSON.parse(localStorage.getItem("acc_struct_v17")) || [
+      { title: "會計基礎", sections: [{ id: "sec_1", title: "會計方程式", content: "會計基本恆等式：資產 = 負債 + 權益" }] }
+    ];
+    let currentSecId = "sec_1";
+    let saveTimeout = null;
+
+    function initCloudSync() {
+      const syncStatus = document.getElementById("syncStatus");
+      try {
+        const docRef = window.doc(window.db, "notes", "my_accounting_notes");
+        
+        // 監聽雲端資料，實現跨裝置即時同步
+        window.onSnapshot(docRef, (docSnap) => {
+          if (docSnap.exists()) {
+            chapters = docSnap.data().chapters;
+            localStorage.setItem("acc_struct_v17", JSON.stringify(chapters));
+            renderSidebar();
+            refreshCurrentTitle();
+            syncStatus.innerText = "☁️ 已與雲端同步";
+            syncStatus.style.color = "#28a745";
+          } else {
+            // 若雲端尚無資料，則初始化推送一次
+            saveData();
+          }
+        });
+      } catch (e) {
+        console.error("Firebase 連線錯誤:", e);
+        syncStatus.innerText = "⚠️ 本地模式";
+        syncStatus.style.color = "#dc3545";
+      }
+    }
+
+    function debouncedSave() {
+      clearTimeout(saveTimeout);
+      saveTimeout = setTimeout(() => { saveData(); }, 500);
+    }
+
+    async function saveData() {
+      let sec = getSecObj(currentSecId);
+      if (sec) sec.content = document.getElementById("noteViewer").innerHTML;
+      
+      localStorage.setItem("acc_struct_v17", JSON.stringify(chapters));
+
+      if (window.db) {
+        const syncStatus = document.getElementById("syncStatus");
+        syncStatus.innerText = "⏳ 雲端同步中...";
+        try {
+          await window.setDoc(window.doc(window.db, "notes", "my_accounting_notes"), { chapters });
+          syncStatus.innerText = "☁️ 已儲存至雲端";
+          syncStatus.style.color = "#28a745";
+        } catch (e) {
+          syncStatus.innerText = "❌ 雲端同步失敗";
+          syncStatus.style.color = "#dc3545";
+        }
+      }
+    }
+
+    function exportData() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(chapters));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", `accounting_notes_backup.json`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+    }
+
+    function importData() {
+      document.getElementById('importInput').click();
+    }
+
+    function handleFileSelect(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        try {
+          const imported = JSON.parse(evt.target.result);
+          if (Array.isArray(imported)) {
+            chapters = imported;
+            saveData();
+            renderSidebar();
+            alert("備份資料載入成功！");
+          }
+        } catch(err) {
+          alert("檔案格式不正確！");
+        }
+      };
+      reader.readAsText(file);
+    }
+
     function toggleSidebar() {
       document.getElementById('sidebar').classList.toggle('open');
       document.getElementById('sidebarOverlay').classList.toggle('show');
@@ -241,61 +307,17 @@
       document.getElementById('sidebarOverlay').classList.remove('show');
     }
 
-    const ACCOUNTING_FORMULAS = [
-      { name: "銷貨毛利率", keywords: "毛利 毛利率 銷貨毛利 銷貨收入", html: `毛利率 = <span class="frac-wrap"><span class="frac-num">銷貨毛利</span><span class="frac-den">銷貨收入淨額</span></span> × 100%` },
-      { name: "應收帳款周轉天數", keywords: "應收帳款 周轉天數 平均收現期間 收款天數 365", html: `應收帳款周轉天數 = <span class="frac-wrap"><span class="frac-num">365</span><span class="frac-den">應收帳款周轉率</span></span>` },
-      { name: "存貨周轉天數", keywords: "存貨 周轉天數 售貨天數 365", html: `存貨周轉天數 = <span class="frac-wrap"><span class="frac-num">365</span><span class="frac-den">存貨周轉率</span></span>` },
-      { name: "營業週期", keywords: "營業週期 周轉天數 應收帳款 存貨", html: `營業週期 = 存貨周轉天數 + 應收帳款周轉天數` },
-      { name: "現金轉化週期 (CCC)", keywords: "現金轉化週期 CCC 應付帳款 天數", html: `現金轉化週期 = 存貨周轉天數 + 應收帳款周轉天數 - 應付帳款付款天數` },
-      { name: "應收帳款周轉率", keywords: "應收帳款 周轉率 銷貨收入", html: `應收帳款周轉率 = <span class="frac-wrap"><span class="frac-num">銷貨收入淨額</span><span class="frac-den">平均應收帳款</span></span>` },
-      { name: "存貨周轉率", keywords: "存貨 周轉率 銷貨成本", html: `存貨周轉率 = <span class="frac-wrap"><span class="frac-num">銷貨成本</span><span class="frac-den">平均存貨</span></span>` },
-      { name: "營業利益率", keywords: "營業利益率 營業利益 銷貨收入", html: `營業利益率 = <span class="frac-wrap"><span class="frac-num">營業利益</span><span class="frac-den">銷貨收入淨額</span></span> × 100%` },
-      { name: "純益率 (淨利率)", keywords: "純益率 淨利率 本期淨利 銷貨收入", html: `純益率 = <span class="frac-wrap"><span class="frac-num">本期淨利</span><span class="frac-den">銷貨收入淨額</span></span> × 100%` },
-      { name: "隱含利率 / 現值折現公式", keywords: "隱含利率 折現 現值 未實現利息", html: `現值 = <span class="frac-wrap"><span class="frac-num">未來現金流量</span><span class="frac-den">(1 + 隱含利率)^n</span></span>` },
-      { name: "總資產報酬率 (ROA)", keywords: "資產報酬率 ROA 淨利 平均總資產", html: `ROA = <span class="frac-wrap"><span class="frac-num">本期淨利 + 利息費用×(1-稅率)</span><span class="frac-den">平均總資產</span></span>` },
-      { name: "權益報酬率 (ROE)", keywords: "權益報酬率 ROE 股東權益", html: `ROE = <span class="frac-wrap"><span class="frac-num">本期淨利</span><span class="frac-den">平均股東權益</span></span>` },
-      { name: "每股盈餘 (EPS)", keywords: "每股盈餘 EPS 股利 股數", html: `EPS = <span class="frac-wrap"><span class="frac-num">本期淨利 - 特別股股利</span><span class="frac-den">普通股加權平均流通在外股數</span></span>` }
-    ];
-
-    let savedRange = null; 
-    let selectedElement = null;
-    let activeAnchor = null;
-    let isDraggingBox = null;
-    let dragStartX = 0, dragStartY = 0, boxInitialLeft = 0, boxInitialTop = 0;
-    let isReadMode = false;
-
-    let chapters = JSON.parse(localStorage.getItem("acc_struct_v17")) || [
-      { title: "會計基礎", sections: [{ id: "sec_1", title: "會計方程式", content: "會計基本恆等式：資產 = 負債 + 權益" }] },
-      { title: "財務分析", sections: [{ id: "sec_2", title: "周轉天數與毛利率", content: "可以直接在頁面上任意新增文字框，自由調整大小並進行連線！" }] }
-    ];
-
-    let currentSecId = "sec_2";
-    let modalType = "";
-    let saveTimeout = null;
-
-    function debouncedSave() {
-      clearTimeout(saveTimeout);
-      saveTimeout = setTimeout(() => { saveData(); }, 400);
-    }
-
     function applyHighlight(bgColor) {
-      const sel = window.getSelection();
-      if (!sel.rangeCount || sel.isCollapsed) return alert("請先選取文字！");
       document.execCommand('hiliteColor', false, bgColor);
       debouncedSave();
     }
 
     function removeHighlight() {
-      const sel = window.getSelection();
-      if (!sel.rangeCount || sel.isCollapsed) return alert("請先選取文字！");
       document.execCommand('removeFormat', false, null);
-      document.execCommand('hiliteColor', false, 'transparent');
       debouncedSave();
     }
 
     function applyTextColor(color) {
-      const sel = window.getSelection();
-      if (!sel.rangeCount || sel.isCollapsed) return alert("請先選取文字！");
       document.execCommand('foreColor', false, color);
       debouncedSave();
     }
@@ -305,410 +327,62 @@
       debouncedSave();
     }
 
-    function handleEditorKeyUp(e) {
-      if (e.key === '/') {
-        saveSelection();
-        openFormulaSearchModal();
-      }
-    }
-
-    function saveSelection() {
-      const sel = window.getSelection();
-      if (sel.rangeCount > 0) savedRange = sel.getRangeAt(0);
-    }
-
-    function restoreSelection() {
-      if (savedRange) {
-        const sel = window.getSelection();
-        sel.removeAllRanges();
-        sel.addRange(savedRange);
-      }
-    }
-
-    function openFormulaSearchModal() {
-      saveSelection();
-      document.getElementById("formulaSearchInput").value = "";
-      filterFormulas();
-      document.getElementById("formulaModal").style.display = "flex";
-      document.getElementById("formulaSearchInput").focus();
-    }
-
-    function closeFormulaModal() { document.getElementById("formulaModal").style.display = "none"; }
-
-    function filterFormulas() {
-      const keyword = document.getElementById("formulaSearchInput").value.toLowerCase().trim();
-      const container = document.getElementById("formulaListContainer");
-      container.innerHTML = "";
-
-      const filtered = ACCOUNTING_FORMULAS.filter(f => 
-        f.name.toLowerCase().includes(keyword) || f.keywords.toLowerCase().includes(keyword)
-      );
-
-      if (filtered.length === 0) {
-        container.innerHTML = `<div style="padding:15px; text-align:center; color:#888;">找不到相關公式</div>`;
-        return;
-      }
-
-      filtered.forEach((f, idx) => {
-        const item = document.createElement("div");
-        item.className = "formula-item";
-        item.innerHTML = `
-          <div>
-            <div class="formula-title">${f.name}</div>
-            <div class="formula-preview">${f.html}</div>
-          </div>
-          <button class="btn-insert-sm" onclick="insertFormulaByIndex(${idx})">帶入</button>
-        `;
-        container.appendChild(item);
-      });
-    }
-
-    function insertFormulaByIndex(idx) {
-      const formulaHtml = ACCOUNTING_FORMULAS[idx].html;
-      closeFormulaModal();
-      const viewer = document.getElementById("noteViewer");
-      viewer.focus();
-      restoreSelection();
-
-      const sel = window.getSelection();
-      if (sel.rangeCount > 0) {
-        const range = sel.getRangeAt(0);
-        if (range.startOffset > 0 && range.startContainer.nodeType === Node.TEXT_NODE) {
-          if (range.startContainer.textContent.endsWith('/')) {
-            range.startContainer.textContent = range.startContainer.textContent.slice(0, -1);
-          }
-        }
-      }
-
-      document.execCommand('insertHTML', false, `&nbsp;${formulaHtml}&nbsp;`);
-      debouncedSave();
-    }
-
-    function openFracModal() {
-      saveSelection();
-      document.getElementById("fracNumInput").value = "";
-      document.getElementById("fracDenInput").value = "";
-      document.getElementById("fracModal").style.display = "flex";
-      document.getElementById("fracNumInput").focus();
-    }
-
-    function closeFracModal() { document.getElementById("fracModal").style.display = "none"; }
-
-    function submitFracModal() {
-      const num = document.getElementById("fracNumInput").value.trim() || "分子";
-      const den = document.getElementById("fracDenInput").value.trim() || "分母";
-      const html = `<span class="frac-wrap"><span class="frac-num">${num}</span><span class="frac-den">${den}</span></span>`;
-      
-      closeFracModal();
-      document.getElementById("noteViewer").focus();
-      restoreSelection();
-      document.execCommand('insertHTML', false, `&nbsp;${html}&nbsp;`);
-      debouncedSave();
-    }
-
-    /* 🔳 直接在頁面新增自由文字框 */
     function addFreeBox() {
       const wrapper = document.getElementById('canvasWrapper');
       const boxId = "box_" + Date.now();
-      
       const box = document.createElement('div');
       box.className = 'tree-box';
       box.id = boxId;
-      
-      // 生成在畫布中間附近
-      const scrollY = wrapper.scrollTop;
       box.style.left = '60px';
-      box.style.top = (100 + scrollY) + 'px';
+      box.style.top = (100 + wrapper.scrollTop) + 'px';
 
       box.innerHTML = `
-        <div class="box-quick-del" title="刪除文字框" onclick="removeTreeBox('${boxId}')">✕</div>
+        <div class="box-quick-del" onclick="removeTreeBox('${boxId}')">✕</div>
         <div class="box-drag-handle"></div>
-        <div class="box-content" contenteditable="true">點擊輸入文字...</div>
-        <div class="anchor-point anchor-top" data-id="${boxId}_top"></div>
-        <div class="anchor-point anchor-bottom" data-id="${boxId}_bottom"></div>
-        <div class="anchor-point anchor-left" data-id="${boxId}_left"></div>
-        <div class="anchor-point anchor-right" data-id="${boxId}_right"></div>
+        <div class="box-content" contenteditable="true">輸入內容...</div>
       `;
-
       wrapper.appendChild(box);
-      
-      // 監聽文字框手動調整大小時更新連線
-      new ResizeObserver(() => updateAllLines()).observe(box);
-
       debouncedSave();
     }
 
-    /* 徹底修復：直接按 ✕ 刪除文字框及其連線 */
     function removeTreeBox(boxId) {
       const box = document.getElementById(boxId);
-      if (!box) return;
-
-      const lines = document.querySelectorAll('#globalSvg line');
-      lines.forEach(line => {
-        const from = line.getAttribute('data-from');
-        const to = line.getAttribute('data-to');
-        if ((from && from.startsWith(boxId)) || (to && to.startsWith(boxId))) {
-          line.remove();
-        }
-      });
-
-      box.remove();
-      if (selectedElement === box) selectedElement = null;
-      hideLineDelBtn();
+      if (box) box.remove();
       debouncedSave();
     }
 
-    function removeSelectedLine() {
-      if (selectedElement && selectedElement.tagName === 'line') {
-        selectedElement.remove();
-        selectedElement = null;
-        hideLineDelBtn();
-        debouncedSave();
-      }
-    }
-
-    function hideLineDelBtn() {
-      document.getElementById('globalLineDelBtn').style.display = 'none';
-    }
-
-    function getPointerPos(e) {
-      if (e.touches && e.touches.length > 0) {
-        return { x: e.touches[0].clientX, y: e.touches[0].clientY };
-      }
-      return { x: e.clientX, y: e.clientY };
-    }
-
-    function handleStart(e) {
-      if (document.body.classList.contains('read-mode')) return;
-      if (e.target.classList.contains('box-quick-del') || e.target.classList.contains('line-del-btn')) return;
-
-      const box = e.target.closest('.tree-box');
-      
-      if (box && !e.target.classList.contains('anchor-point')) {
-        clearSelection();
-        selectedElement = box;
-        box.classList.add('selected');
-
-        if (!e.target.classList.contains('box-content')) {
-          if (document.activeElement) document.activeElement.blur();
-        }
-
-        if (e.target.classList.contains('box-drag-handle')) {
-          isDraggingBox = box;
-          const pos = getPointerPos(e);
-          dragStartX = pos.x;
-          dragStartY = pos.y;
-          boxInitialLeft = box.offsetLeft;
-          boxInitialTop = box.offsetTop;
-        }
-      }
-
-      if (e.target.tagName === 'line') {
-        e.stopPropagation();
-        clearSelection();
-        selectedElement = e.target;
-        e.target.classList.add('selected');
-
-        const delBtn = document.getElementById('globalLineDelBtn');
-        const x1 = parseFloat(e.target.getAttribute('x1'));
-        const y1 = parseFloat(e.target.getAttribute('y1'));
-        const x2 = parseFloat(e.target.getAttribute('x2'));
-        const y2 = parseFloat(e.target.getAttribute('y2'));
-
-        delBtn.style.left = ((x1 + x2) / 2) + 'px';
-        delBtn.style.top = ((y1 + y2) / 2) + 'px';
-        delBtn.style.display = 'block';
-      }
-    }
-
-    function handleMove(e) {
-      if (isDraggingBox) {
-        const pos = getPointerPos(e);
-        const dx = pos.x - dragStartX;
-        const dy = pos.y - dragStartY;
-        isDraggingBox.style.left = (boxInitialLeft + dx) + 'px';
-        isDraggingBox.style.top = (boxInitialTop + dy) + 'px';
-        updateAllLines();
-      }
-    }
-
-    function handleEnd() {
-      if (isDraggingBox) {
-        isDraggingBox = null;
-        debouncedSave();
-      }
-    }
-
-    document.addEventListener('mousedown', handleStart);
-    document.addEventListener('mousemove', handleMove);
-    document.addEventListener('mouseup', handleEnd);
-
-    document.addEventListener('touchstart', handleStart, {passive: false});
-    document.addEventListener('touchmove', handleMove, {passive: false});
-    document.addEventListener('touchend', handleEnd);
-
-    /* 點擊節點進行連線 */
-    document.addEventListener('click', (e) => {
-      if (isReadMode) return;
-
-      if (e.target.classList.contains('anchor-point')) {
-        e.stopPropagation();
-        const anc = e.target;
-
-        if (!activeAnchor) {
-          activeAnchor = anc;
-          anc.classList.add('active');
-        } else {
-          if (activeAnchor !== anc) {
-            connectAnchors(activeAnchor, anc);
-          }
-          activeAnchor.classList.remove('active');
-          activeAnchor = null;
-        }
-      } else if (!e.target.classList.contains('tree-box') && e.target.tagName !== 'line' && !e.target.classList.contains('line-del-btn')) {
-        clearSelection();
-        if (activeAnchor) {
-          activeAnchor.classList.remove('active');
-          activeAnchor = null;
-        }
-      }
-    });
-
-    function connectAnchors(ancA, ancB) {
-      const svg = document.getElementById('globalSvg');
-      const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-      const idA = ancA.getAttribute('data-id');
-      const idB = ancB.getAttribute('data-id');
-
-      line.setAttribute('data-from', idA);
-      line.setAttribute('data-to', idB);
-      line.setAttribute('marker-end', 'url(#arrow)');
-
-      svg.appendChild(line);
-      updateAllLines();
-      debouncedSave();
-    }
-
-    function updateAllLines() {
-      const wrapper = document.getElementById('canvasWrapper');
-      const wRect = wrapper.getBoundingClientRect();
-      const lines = document.querySelectorAll('#globalSvg line');
-
-      lines.forEach(line => {
-        const fromId = line.getAttribute('data-from');
-        const toId = line.getAttribute('data-to');
-        const ancA = document.querySelector(`[data-id="${fromId}"]`);
-        const ancB = document.querySelector(`[data-id="${toId}"]`);
-
-        if (ancA && ancB) {
-          const rA = ancA.getBoundingClientRect();
-          const rB = ancB.getBoundingClientRect();
-
-          const x1 = rA.left + rA.width / 2 - wRect.left + wrapper.scrollLeft;
-          const y1 = rA.top + rA.height / 2 - wRect.top + wrapper.scrollTop;
-          const x2 = rB.left + rB.width / 2 - wRect.left + wrapper.scrollLeft;
-          const y2 = rB.top + rB.height / 2 - wRect.top + wrapper.scrollTop;
-
-          line.setAttribute('x1', x1);
-          line.setAttribute('y1', y1);
-          line.setAttribute('x2', x2);
-          line.setAttribute('y2', y2);
-
-          if (line === selectedElement) {
-            const delBtn = document.getElementById('globalLineDelBtn');
-            delBtn.style.left = ((x1 + x2) / 2) + 'px';
-            delBtn.style.top = ((y1 + y2) / 2) + 'px';
-          }
-        }
-      });
-    }
-
-    function clearSelection() {
-      if (selectedElement) {
-        if (selectedElement.classList) selectedElement.classList.remove('selected');
-        selectedElement = null;
-      }
-      hideLineDelBtn();
-    }
-
-    /* 📌 側邊欄與極簡標題渲染 */
     function renderSidebar() {
       const list = document.getElementById("chapterList");
       list.innerHTML = "";
-
       chapters.forEach((chap, cIdx) => {
         const cBox = document.createElement("div");
         cBox.className = "chap-box";
-        
-        cBox.innerHTML = `
-          <div class="chap-header">
-            <span>${chap.title}</span>
-            <div class="ctrl-btns">
-              <button class="micro-btn" onclick="moveChap(${cIdx}, -1)">▲</button>
-              <button class="micro-btn" onclick="moveChap(${cIdx}, 1)">▼</button>
-              <button class="micro-btn" style="color:red;" onclick="delChap(${cIdx})">✖</button>
-            </div>
-          </div>
-        `;
+        cBox.innerHTML = `<div class="chap-header"><span>${chap.title}</span></div>`;
 
-        chap.sections.forEach((sec, sIdx) => {
+        chap.sections.forEach((sec) => {
           const item = document.createElement("div");
           item.className = `sec-item ${sec.id === currentSecId ? 'active' : ''}`;
-          item.onclick = (e) => {
-            if(!e.target.classList.contains('micro-btn')) {
-              loadSec(sec.id, `${chap.title} - ${sec.title}`);
-              closeSidebar();
-            }
-          };
-
-          item.innerHTML = `
-            <span>${sec.title}</span>
-            <div class="ctrl-btns">
-              <button class="micro-btn" onclick="moveSec(${cIdx}, ${sIdx}, -1)">▲</button>
-              <button class="micro-btn" onclick="moveSec(${cIdx}, ${sIdx}, 1)">▼</button>
-              <button class="micro-btn" style="color:red;" onclick="delSec(${cIdx}, ${sIdx})">✖</button>
-            </div>
-          `;
+          item.onclick = () => { loadSec(sec.id, `${chap.title} - ${sec.title}`); closeSidebar(); };
+          item.innerHTML = `<span>${sec.title}</span>`;
           cBox.appendChild(item);
         });
-
         list.appendChild(cBox);
       });
-
-      saveData();
     }
 
-    function moveChap(idx, dir) {
-      if (idx + dir < 0 || idx + dir >= chapters.length) return;
-      const temp = chapters[idx];
-      chapters[idx] = chapters[idx + dir];
-      chapters[idx + dir] = temp;
+    function loadSec(id, fullDisplayTitle) {
+      currentSecId = id;
+      document.getElementById("currentTitle").innerText = fullDisplayTitle;
+      let sec = getSecObj(id);
+      document.getElementById("noteViewer").innerHTML = sec ? sec.content : "";
       renderSidebar();
-      refreshCurrentTitle();
     }
 
-    function delChap(idx) {
-      if (confirm("確定刪除此章節？")) {
-        chapters.splice(idx, 1);
-        renderSidebar();
+    function getSecObj(id) {
+      for (let c of chapters) {
+        for (let s of c.sections) if (s.id === id) return s;
       }
-    }
-
-    function moveSec(cIdx, sIdx, dir) {
-      const secs = chapters[cIdx].sections;
-      if (sIdx + dir < 0 || sIdx + dir >= secs.length) return;
-      const temp = secs[sIdx];
-      secs[sIdx] = secs[sIdx + dir];
-      secs[sIdx + dir] = temp;
-      renderSidebar();
-      refreshCurrentTitle();
-    }
-
-    function delSec(cIdx, sIdx) {
-      if (confirm("確定刪除此小節？")) {
-        chapters[cIdx].sections.splice(sIdx, 1);
-        renderSidebar();
-      }
+      return null;
     }
 
     function refreshCurrentTitle() {
@@ -721,99 +395,8 @@
       });
     }
 
-    function loadSec(id, fullDisplayTitle) {
-      currentSecId = id;
-      document.getElementById("currentTitle").innerText = fullDisplayTitle;
-      let sec = getSecObj(id);
-      document.getElementById("noteViewer").innerHTML = sec ? sec.content : "";
-      
-      // 清空先前的文字框與連線，改載入該小節的
-      document.querySelectorAll('.tree-box').forEach(b => b.remove());
-      document.getElementById('globalSvg').innerHTML = `
-        <defs>
-          <marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-            <path d="M 0 0 L 10 5 L 0 10 z" fill="#007aff"/>
-          </marker>
-        </defs>`;
-
-      renderSidebar();
-    }
-
-    function getSecObj(id) {
-      for (let c of chapters) {
-        for (let s of c.sections) if (s.id === id) return s;
-      }
-      return null;
-    }
-
-    /* 🔒/🔓 閱讀與編輯模式切換 */
-    function toggleReadMode() {
-      isReadMode = !isReadMode;
-      const btn = document.getElementById('lockToggleBtn');
-      const icon = document.getElementById('lockIcon');
-      const text = document.getElementById('lockText');
-
-      if (isReadMode) {
-        document.body.classList.add('read-mode');
-        btn.classList.add('is-read');
-        icon.innerText = '🔒';
-        text.innerText = '閱讀模式';
-        document.getElementById('noteViewer').setAttribute('contenteditable', 'false');
-      } else {
-        document.body.classList.remove('read-mode');
-        btn.classList.remove('is-read');
-        icon.innerText = '🔓';
-        text.innerText = '編輯模式';
-        document.getElementById('noteViewer').setAttribute('contenteditable', 'true');
-      }
-    }
-
-    function openModal(type) {
-      modalType = type;
-      const modal = document.getElementById("inputModal");
-      const selectGroup = document.getElementById("modalSelectGroup");
-      if (type === 'chapter') {
-        selectGroup.style.display = "none";
-      } else {
-        selectGroup.style.display = "block";
-        const select = document.getElementById("chapterSelect");
-        select.innerHTML = "";
-        chapters.forEach((c, idx) => { 
-          select.innerHTML += `<option value="${idx}">${c.title}</option>`; 
-        });
-      }
-      document.getElementById("modalInput").value = "";
-      modal.style.display = "flex";
-      document.getElementById("modalInput").focus();
-    }
-
-    function closeModal() { document.getElementById("inputModal").style.display = "none"; }
-
-    function submitModal() {
-      let val = document.getElementById("modalInput").value.trim();
-      if (!val) return;
-      if (modalType === 'chapter') {
-        chapters.push({ title: val, sections: [] });
-        renderSidebar();
-      } else {
-        const chIdx = parseInt(document.getElementById("chapterSelect").value);
-        const newSecId = "sec_" + Date.now();
-        chapters[chIdx].sections.push({ id: newSecId, title: val, content: "點擊開始記錄..." });
-        
-        loadSec(newSecId, `${chapters[chIdx].title} - ${val}`);
-      }
-      closeModal();
-    }
-
-    function saveData() { 
-      let sec = getSecObj(currentSecId);
-      if (sec) sec.content = document.getElementById("noteViewer").innerHTML;
-      localStorage.setItem("acc_struct_v17", JSON.stringify(chapters)); 
-    }
-
     window.onload = () => {
       renderSidebar();
-      refreshCurrentTitle();
     };
   </script>
 </body>
