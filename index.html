@@ -58,33 +58,11 @@
 
     .editor-wrapper { flex: 1; padding: 20px; overflow-y: auto; position: relative; height: 100%; }
     #noteViewer { min-height: 100%; font-size: 0.98rem; line-height: 1.8; color: #2b2b2b; outline: none; padding-bottom: 250px; position: relative; z-index: 1; }
-    
-    #globalSvg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; pointer-events: none; }
-    #globalSvg line { pointer-events: stroke; cursor: pointer; stroke-width: 4; stroke: #007aff; }
-    #globalSvg line.selected { stroke: #ff3b30 !important; stroke-width: 6 !important; }
-
-    .line-del-btn { position: absolute; width: 20px; height: 20px; background: #ff3b30; color: white; border-radius: 50%; font-size: 12px; font-weight: bold; line-height: 20px; text-align: center; cursor: pointer; z-index: 15; display: none; transform: translate(-50%, -50%); }
-
-    .frac-wrap { display: inline-flex; flex-direction: column; vertical-align: middle; text-align: center; font-size: 0.9em; padding: 0 3px; line-height: 1.1; }
-    .frac-num { border-bottom: 1.5px solid #333; padding: 1px 2px; }
-    .frac-den { padding: 1px 2px; }
-
-    body.read-mode #noteViewer { pointer-events: none; }
-    body.read-mode .toolbar { display: none !important; }
-    body.read-mode .anchor-point, body.read-mode .box-drag-handle, body.read-mode .box-quick-del, body.read-mode .line-del-btn { display: none !important; }
 
     .tree-box { position: absolute; min-width: 120px; min-height: 50px; background: #fff; border: 2px solid #007aff; border-radius: 8px; font-size: 0.85rem; z-index: 10; box-shadow: 0 3px 8px rgba(0,0,0,0.12); touch-action: none; resize: both; overflow: auto; display: inline-block; }
-    .tree-box.selected { border-color: #ff9500 !important; box-shadow: 0 0 0 3px rgba(255,149,0,0.4) !important; }
-    
     .box-drag-handle { background: #f0f4f8; height: 18px; cursor: move; border-top-left-radius: 6px; border-top-right-radius: 6px; border-bottom: 1px solid #e0e0e0; }
     .box-quick-del { position: absolute; top: -8px; right: -8px; width: 22px; height: 22px; background: #ff3b30; color: white; border-radius: 50%; font-size: 13px; font-weight: bold; line-height: 22px; text-align: center; cursor: pointer; z-index: 30; border: 1.5px solid #fff; }
-
     .box-content { padding: 6px 10px; outline: none; cursor: text; min-height: 30px; }
-
-    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); display: none; justify-content: center; align-items: center; z-index: 300; padding: 15px; }
-    .modal-card { background: white; padding: 18px; border-radius: 12px; width: 100%; max-width: 450px; box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
-    .modal-card input { width: 100%; padding: 8px 10px; border: 1px solid #ccc; border-radius: 6px; margin-bottom: 10px; }
-    .modal-btns { display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px; }
 
     @media (max-width: 768px) {
       .menu-toggle { display: block; }
@@ -103,8 +81,8 @@
       <button class="micro-btn" style="font-size:1rem;" onclick="closeSidebar()">✕</button>
     </div>
     <div class="add-btn-group">
-      <button class="btn-action" onclick="openModal('chapter')">➕ 新增章節</button>
-      <button class="btn-action" onclick="openModal('section')">➕ 新增小節</button>
+      <button class="btn-action" onclick="addNewChapter()">➕ 新增章節</button>
+      <button class="btn-action" onclick="addNewSection()">➕ 新增小節</button>
     </div>
     <div class="chapter-list" id="chapterList"></div>
   </div>
@@ -117,7 +95,7 @@
           <div class="doc-title" id="currentTitle">筆記</div>
         </div>
         
-        <span class="sync-status" id="syncStatus">☁️ 雲端連線中...</span>
+        <span class="sync-status" id="syncStatus">⏳ 連線至 Firebase...</span>
 
         <button class="lock-btn" id="lockToggleBtn" onclick="toggleReadMode()">
           <span id="lockIcon">🔓</span>
@@ -143,24 +121,15 @@
     </div>
 
     <div class="editor-wrapper" id="canvasWrapper">
-      <div class="line-del-btn" id="globalLineDelBtn" onclick="removeSelectedLine()">✕</div>
-      <svg id="globalSvg">
-        <defs>
-          <marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-            <path d="M 0 0 L 10 5 L 0 10 z" fill="#007aff"/>
-          </marker>
-        </defs>
-      </svg>
       <div id="noteViewer" contenteditable="true" oninput="debouncedSave()"></div>
     </div>
   </div>
 
-  <!-- 引入 Firebase SDK -->
+  <!-- Firebase 模組化載入 -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    // 填入 olaf-accounting 專屬 Firebase Config
     const firebaseConfig = {
       apiKey: "AIzaSyBk5qBqzA7WCePRVRNn_8oRiWDLfKnV8Hc",
       authDomain: "olaf-accounting.firebaseapp.com",
@@ -173,105 +142,166 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
-    
+
     window.db = db;
     window.doc = doc;
+    window.getDoc = getDoc;
     window.setDoc = setDoc;
-    window.onSnapshot = onSnapshot;
 
-    // 啟動實時雲端同步
-    initCloudSync();
+    // 啟動資料庫
+    initFirebaseData();
   </script>
 
   <script>
-    let chapters = JSON.parse(localStorage.getItem("acc_struct_v17")) || [
+    let chapters = [
       { title: "會計基礎", sections: [{ id: "sec_1", title: "會計方程式", content: "會計基本恆等式：資產 = 負債 + 權益" }] }
     ];
     let currentSecId = "sec_1";
     let saveTimeout = null;
+    let isCloudLoaded = false;
 
-    function initCloudSync() {
+    async function initFirebaseData() {
       const syncStatus = document.getElementById("syncStatus");
-      try {
-        const docRef = window.doc(window.db, "notes", "my_accounting_notes");
-        
-        // 實時監聽雲端資料變更
-        window.onSnapshot(docRef, (docSnap) => {
-          if (docSnap.exists()) {
-            chapters = docSnap.data().chapters;
-            localStorage.setItem("acc_struct_v17", JSON.stringify(chapters));
-            renderSidebar();
-            refreshCurrentTitle();
-            syncStatus.innerText = "☁️ 已與雲端同步";
-            syncStatus.style.color = "#28a745";
-          } else {
-            saveData();
-          }
-        });
-      } catch (e) {
-        console.error("Firebase 連線錯誤:", e);
+      
+      // 等待 Firebase 變數準備好
+      let checks = 0;
+      while (!window.db && checks < 20) {
+        await new Promise(r => setTimeout(r, 200));
+        checks++;
+      }
+
+      if (!window.db) {
         syncStatus.innerText = "⚠️ 本地模式";
         syncStatus.style.color = "#dc3545";
+        loadSec(currentSecId);
+        return;
       }
+
+      try {
+        const docRef = window.doc(window.db, "notes", "my_accounting_notes");
+        const docSnap = await window.getDoc(docRef);
+
+        if (docSnap.exists()) {
+          chapters = docSnap.data().chapters;
+        } else {
+          // 第一次建立雲端檔案
+          await window.setDoc(docRef, { chapters });
+        }
+        
+        isCloudLoaded = true;
+        syncStatus.innerText = "☁️ 已與雲端同步";
+        syncStatus.style.color = "#28a745";
+
+      } catch (e) {
+        console.error("雲端讀取失敗:", e);
+        syncStatus.innerText = "❌ 雲端同步失敗";
+        syncStatus.style.color = "#dc3545";
+      }
+
+      renderSidebar();
+      loadSec(currentSecId);
     }
 
     function debouncedSave() {
+      if (!isCloudLoaded) return; // 沒讀取完之前不儲存，避免蓋掉雲端資料
       clearTimeout(saveTimeout);
-      saveTimeout = setTimeout(() => { saveData(); }, 500);
+      saveTimeout = setTimeout(() => { saveData(); }, 600);
     }
 
     async function saveData() {
       let sec = getSecObj(currentSecId);
       if (sec) sec.content = document.getElementById("noteViewer").innerHTML;
-      
-      localStorage.setItem("acc_struct_v17", JSON.stringify(chapters));
 
-      if (window.db) {
+      if (window.db && isCloudLoaded) {
         const syncStatus = document.getElementById("syncStatus");
-        syncStatus.innerText = "⏳ 雲端同步中...";
+        syncStatus.innerText = "⏳ 儲存中...";
+        syncStatus.style.color = "#007aff";
         try {
           await window.setDoc(window.doc(window.db, "notes", "my_accounting_notes"), { chapters });
           syncStatus.innerText = "☁️ 已儲存至雲端";
           syncStatus.style.color = "#28a745";
         } catch (e) {
-          syncStatus.innerText = "❌ 雲端同步失敗";
+          syncStatus.innerText = "❌ 儲存失敗";
           syncStatus.style.color = "#dc3545";
         }
       }
     }
 
-    function exportData() {
-      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(chapters));
-      const downloadAnchor = document.createElement('a');
-      downloadAnchor.setAttribute("href", dataStr);
-      downloadAnchor.setAttribute("download", `accounting_notes_backup.json`);
-      document.body.appendChild(downloadAnchor);
-      downloadAnchor.click();
-      downloadAnchor.remove();
+    function renderSidebar() {
+      const list = document.getElementById("chapterList");
+      list.innerHTML = "";
+      chapters.forEach((chap, cIdx) => {
+        const cBox = document.createElement("div");
+        cBox.className = "chap-box";
+        cBox.innerHTML = `<div class="chap-header"><span>${chap.title}</span></div>`;
+
+        chap.sections.forEach((sec) => {
+          const item = document.createElement("div");
+          item.className = `sec-item ${sec.id === currentSecId ? 'active' : ''}`;
+          item.onclick = () => { switchSec(sec.id); closeSidebar(); };
+          item.innerHTML = `<span>${sec.title}</span>`;
+          cBox.appendChild(item);
+        });
+        list.appendChild(cBox);
+      });
     }
 
-    function importData() {
-      document.getElementById('importInput').click();
+    function switchSec(id) {
+      // 切換前先把舊頁面儲存
+      let sec = getSecObj(currentSecId);
+      if (sec) sec.content = document.getElementById("noteViewer").innerHTML;
+      
+      currentSecId = id;
+      loadSec(id);
+      saveData();
     }
 
-    function handleFileSelect(e) {
-      const file = e.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = function(evt) {
-        try {
-          const imported = JSON.parse(evt.target.result);
-          if (Array.isArray(imported)) {
-            chapters = imported;
-            saveData();
-            renderSidebar();
-            alert("備份資料載入成功！");
+    function loadSec(id) {
+      let sec = getSecObj(id);
+      if (sec) {
+        document.getElementById("noteViewer").innerHTML = sec.content || "";
+        refreshCurrentTitle();
+      }
+      renderSidebar();
+    }
+
+    function getSecObj(id) {
+      for (let c of chapters) {
+        for (let s of c.sections) if (s.id === id) return s;
+      }
+      return null;
+    }
+
+    function refreshCurrentTitle() {
+      chapters.forEach((c) => {
+        c.sections.forEach((s) => {
+          if (s.id === currentSecId) {
+            document.getElementById("currentTitle").innerText = `${c.title} - ${s.title}`;
           }
-        } catch(err) {
-          alert("檔案格式不正確！");
-        }
-      };
-      reader.readAsText(file);
+        });
+      });
+    }
+
+    function addNewChapter() {
+      const name = prompt("請輸入新章節名稱：");
+      if (name) {
+        const newSecId = "sec_" + Date.now();
+        chapters.push({
+          title: name,
+          sections: [{ id: newSecId, title: "小節 1", content: "請輸入筆記內容..." }]
+        });
+        switchSec(newSecId);
+      }
+    }
+
+    function addNewSection() {
+      if (chapters.length === 0) return alert("請先建立章節！");
+      const name = prompt("請輸入新小節名稱：");
+      if (name) {
+        const newSecId = "sec_" + Date.now();
+        chapters[0].sections.push({ id: newSecId, title: name, content: "請輸入筆記內容..." });
+        switchSec(newSecId);
+      }
     }
 
     function toggleSidebar() {
@@ -328,53 +358,39 @@
       debouncedSave();
     }
 
-    function renderSidebar() {
-      const list = document.getElementById("chapterList");
-      list.innerHTML = "";
-      chapters.forEach((chap, cIdx) => {
-        const cBox = document.createElement("div");
-        cBox.className = "chap-box";
-        cBox.innerHTML = `<div class="chap-header"><span>${chap.title}</span></div>`;
-
-        chap.sections.forEach((sec) => {
-          const item = document.createElement("div");
-          item.className = `sec-item ${sec.id === currentSecId ? 'active' : ''}`;
-          item.onclick = () => { loadSec(sec.id, `${chap.title} - ${sec.title}`); closeSidebar(); };
-          item.innerHTML = `<span>${sec.title}</span>`;
-          cBox.appendChild(item);
-        });
-        list.appendChild(cBox);
-      });
+    function exportData() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(chapters));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", `accounting_notes_backup.json`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
     }
 
-    function loadSec(id, fullDisplayTitle) {
-      currentSecId = id;
-      document.getElementById("currentTitle").innerText = fullDisplayTitle;
-      let sec = getSecObj(id);
-      document.getElementById("noteViewer").innerHTML = sec ? sec.content : "";
-      renderSidebar();
+    function importData() {
+      document.getElementById('importInput').click();
     }
 
-    function getSecObj(id) {
-      for (let c of chapters) {
-        for (let s of c.sections) if (s.id === id) return s;
-      }
-      return null;
-    }
-
-    function refreshCurrentTitle() {
-      chapters.forEach((c) => {
-        c.sections.forEach((s) => {
-          if (s.id === currentSecId) {
-            document.getElementById("currentTitle").innerText = `${c.title} - ${s.title}`;
+    function handleFileSelect(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        try {
+          const imported = JSON.parse(evt.target.result);
+          if (Array.isArray(imported)) {
+            chapters = imported;
+            saveData();
+            renderSidebar();
+            alert("備份資料載入成功！");
           }
-        });
-      });
+        } catch(err) {
+          alert("檔案格式不正確！");
+        }
+      };
+      reader.readAsText(file);
     }
-
-    window.onload = () => {
-      renderSidebar();
-    };
   </script>
 </body>
 </html>
