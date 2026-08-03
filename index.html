@@ -52,11 +52,13 @@
     .editor-wrapper { flex: 1; padding: 20px; overflow-y: auto; position: relative; height: 100%; }
     #noteViewer { min-height: 100%; font-size: 0.98rem; line-height: 1.8; color: #2b2b2b; outline: none; padding-bottom: 250px; position: relative; z-index: 1; }
 
-    /* 公式分數樣式 */
+    /* 公式分數與可刪除組件樣式 */
+    .formula-box { display: inline-flex; align-items: center; background: #e7f5ff; border: 1px solid #a5d8ff; border-radius: 6px; padding: 3px 8px; margin: 4px 4px; font-size: 0.92rem; user-select: text; vertical-align: middle; }
     .frac-wrap { display: inline-flex; flex-direction: column; vertical-align: middle; text-align: center; font-size: 0.88em; padding: 0 4px; line-height: 1.1; margin: 0 4px; font-weight: 600; color: #1864ab; }
     .frac-num { border-bottom: 1.5px solid #1864ab; padding: 2px 4px; outline: none; }
     .frac-den { padding: 2px 4px; outline: none; }
-    .formula-box { display: inline-flex; align-items: center; background: #e7f5ff; border: 1px solid #a5d8ff; border-radius: 6px; padding: 4px 8px; margin: 4px 2px; font-size: 0.92rem; }
+    .formula-del-btn { margin-left: 6px; cursor: pointer; color: #ff3b30; font-weight: bold; font-size: 0.8rem; opacity: 0.6; transition: opacity 0.15s; user-select: none; }
+    .formula-del-btn:hover { opacity: 1; }
 
     /* 表格樣式 */
     .acc-table { border-collapse: collapse; width: 100%; margin: 12px 0; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-radius: 6px; overflow: hidden; }
@@ -463,7 +465,7 @@
       document.getElementById('ctxMenu').style.display = 'none';
     }
 
-    /* --- 會計公式彈窗邏輯 --- */
+    /* --- 會計公式彈窗與刪除邏輯 --- */
     function openFormulaModal() {
       document.getElementById('formulaModal').classList.add('show');
       document.getElementById('formulaSearchInput').value = '';
@@ -506,19 +508,36 @@
     function insertFormulaToNote(f) {
       let html = '';
       if (f.customText) {
-        html = `<div class="formula-box"><b>${f.name}</b>&nbsp;=&nbsp;${f.customText}</div>&nbsp;`;
+        html = `
+          <span class="formula-box">
+            <b>${f.name}</b>&nbsp;=&nbsp;${f.customText}
+            <span class="formula-del-btn" onclick="removeFormulaBox(this)" title="刪除公式">✕</span>
+          </span>&nbsp;
+        `;
       } else {
         html = `
-          <div class="formula-box" contenteditable="false">
+          <span class="formula-box">
             <b>${f.name}</b>&nbsp;=&nbsp;
-            <span class="frac-wrap"><span class="frac-num" contenteditable="true">${f.num}</span><span class="frac-den" contenteditable="true">${f.den}</span></span>
-          </div>&nbsp;
+            <span class="frac-wrap">
+              <span class="frac-num" contenteditable="true">${f.num}</span>
+              <span class="frac-den" contenteditable="true">${f.den}</span>
+            </span>
+            <span class="formula-del-btn" onclick="removeFormulaBox(this)" title="刪除公式">✕</span>
+          </span>&nbsp;
         `;
       }
       closeFormulaModal();
       document.getElementById('noteViewer').focus();
       document.execCommand('insertHTML', false, html);
       debouncedSave();
+    }
+
+    function removeFormulaBox(btn) {
+      const box = btn.closest('.formula-box');
+      if (box) {
+        box.remove();
+        debouncedSave();
+      }
     }
 
     function toggleSidebar() {
