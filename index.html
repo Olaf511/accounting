@@ -52,13 +52,15 @@
     .editor-wrapper { flex: 1; padding: 20px; overflow-y: auto; position: relative; height: 100%; }
     #noteViewer { min-height: 100%; font-size: 0.98rem; line-height: 1.8; color: #2b2b2b; outline: none; padding-bottom: 250px; position: relative; z-index: 1; }
 
-    /* 公式分數與可刪除組件樣式 */
-    .formula-box { display: inline-flex; align-items: center; background: #e7f5ff; border: 1px solid #a5d8ff; border-radius: 6px; padding: 3px 8px; margin: 4px 4px; font-size: 0.92rem; user-select: text; vertical-align: middle; }
+    /* 公式分數與帶有 ✕ 刪除鍵樣式 */
+    .formula-box { display: inline-flex; align-items: center; background: #e7f5ff; border: 1px solid #a5d8ff; border-radius: 6px; padding: 3px 8px; margin: 4px 4px; font-size: 0.92rem; vertical-align: middle; }
     .frac-wrap { display: inline-flex; flex-direction: column; vertical-align: middle; text-align: center; font-size: 0.88em; padding: 0 4px; line-height: 1.1; margin: 0 4px; font-weight: 600; color: #1864ab; }
     .frac-num { border-bottom: 1.5px solid #1864ab; padding: 2px 4px; outline: none; }
     .frac-den { padding: 2px 4px; outline: none; }
-    .formula-del-btn { margin-left: 6px; cursor: pointer; color: #ff3b30; font-weight: bold; font-size: 0.8rem; opacity: 0.6; transition: opacity 0.15s; user-select: none; }
-    .formula-del-btn:hover { opacity: 1; }
+    
+    /* 顯眼的紅 ✕ 刪除按鈕 */
+    .formula-del-btn { display: inline-block; margin-left: 8px; cursor: pointer; color: #ff3b30; font-weight: bold; font-size: 0.9rem; padding: 0 4px; background: rgba(255, 59, 48, 0.1); border-radius: 4px; user-select: none; }
+    .formula-del-btn:hover { background: #ff3b30; color: #fff; }
 
     /* 表格樣式 */
     .acc-table { border-collapse: collapse; width: 100%; margin: 12px 0; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-radius: 6px; overflow: hidden; }
@@ -133,6 +135,7 @@
         <button class="tool-btn btn-danger" onclick="delCol()">➖ 欄</button>
         <button class="tool-btn btn-danger" onclick="deleteTable()">🗑️ 刪除表格</button>
         <button class="tool-btn btn-primary" onclick="addFreeBox()">🔳 文字框</button>
+        <button class="tool-btn btn-danger" onclick="resetCurrentChapter()">💣 清空本章筆記</button>
         <button class="tool-btn" onclick="exportData()">📥 備份</button>
         <button class="tool-btn" onclick="importData()">📤 還原</button>
         <input type="file" id="importInput" style="display:none;" onchange="handleFileSelect(event)">
@@ -325,10 +328,35 @@
     function loadChap(id) {
       let chap = getChapObj(id);
       if (chap) {
-        document.getElementById("noteViewer").innerHTML = chap.content || "";
+        const viewer = document.getElementById("noteViewer");
+        viewer.innerHTML = chap.content || "";
         document.getElementById("currentTitle").innerText = chap.title;
+
+        // 自動清理舊版沒有刪除按鈕的舊公式區塊
+        cleanOldFormulas(viewer);
       }
       renderSidebar();
+    }
+
+    function cleanOldFormulas(container) {
+      const boxes = container.querySelectorAll('.formula-box');
+      let cleaned = false;
+      boxes.forEach(box => {
+        if (!box.querySelector('.formula-del-btn')) {
+          box.remove();
+          cleaned = true;
+        }
+      });
+      if (cleaned) {
+        debouncedSave();
+      }
+    }
+
+    function resetCurrentChapter() {
+      if (confirm(`確定要清空「${getChapObj(currentChapId).title}」的所有內容嗎？`)) {
+        document.getElementById("noteViewer").innerHTML = "";
+        saveData();
+      }
     }
 
     function getChapObj(id) {
@@ -465,7 +493,7 @@
       document.getElementById('ctxMenu').style.display = 'none';
     }
 
-    /* --- 會計公式彈窗與刪除邏輯 --- */
+    /* --- 會計公式彈窗與帶有 ✕ 刪除按鈕邏輯 --- */
     function openFormulaModal() {
       document.getElementById('formulaModal').classList.add('show');
       document.getElementById('formulaSearchInput').value = '';
@@ -511,7 +539,7 @@
         html = `
           <span class="formula-box">
             <b>${f.name}</b>&nbsp;=&nbsp;${f.customText}
-            <span class="formula-del-btn" onclick="removeFormulaBox(this)" title="刪除公式">✕</span>
+            <span class="formula-del-btn" onclick="this.parentElement.remove(); debouncedSave();" title="刪除公式">✕</span>
           </span>&nbsp;
         `;
       } else {
@@ -522,7 +550,7 @@
               <span class="frac-num" contenteditable="true">${f.num}</span>
               <span class="frac-den" contenteditable="true">${f.den}</span>
             </span>
-            <span class="formula-del-btn" onclick="removeFormulaBox(this)" title="刪除公式">✕</span>
+            <span class="formula-del-btn" onclick="this.parentElement.remove(); debouncedSave();" title="刪除公式">✕</span>
           </span>&nbsp;
         `;
       }
@@ -530,14 +558,6 @@
       document.getElementById('noteViewer').focus();
       document.execCommand('insertHTML', false, html);
       debouncedSave();
-    }
-
-    function removeFormulaBox(btn) {
-      const box = btn.closest('.formula-box');
-      if (box) {
-        box.remove();
-        debouncedSave();
-      }
     }
 
     function toggleSidebar() {
