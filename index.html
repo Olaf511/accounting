@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>會計學全功能筆記系統 (雲端同步修正版)</title>
+  <title>會計學筆記系統 (強效刪除與折舊公式版)</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body { height: 100%; width: 100%; overflow: hidden; }
@@ -52,15 +52,15 @@
     .editor-wrapper { flex: 1; padding: 20px; overflow-y: auto; position: relative; height: 100%; }
     #noteViewer { min-height: 100%; font-size: 0.98rem; line-height: 1.8; color: #2b2b2b; outline: none; padding-bottom: 250px; position: relative; z-index: 1; }
 
-    /* 獨立且不可編輯的公式框樣式 */
-    .formula-box { display: inline-flex; align-items: center; background: #e7f5ff; border: 1px solid #a5d8ff; border-radius: 6px; padding: 3px 8px; margin: 4px 4px; font-size: 0.92rem; vertical-align: middle; user-select: none; }
+    /* 公式區塊與刪除按鈕標籤 */
+    .formula-box { display: inline-flex; align-items: center; background: #e7f5ff; border: 1.5px solid #74c0fc; border-radius: 6px; padding: 4px 8px; margin: 4px; font-size: 0.92rem; vertical-align: middle; position: relative; user-select: none; }
     .frac-wrap { display: inline-flex; flex-direction: column; vertical-align: middle; text-align: center; font-size: 0.88em; padding: 0 4px; line-height: 1.1; margin: 0 4px; font-weight: 600; color: #1864ab; }
-    .frac-num { border-bottom: 1.5px solid #1864ab; padding: 2px 4px; outline: none; user-select: text; }
-    .frac-den { padding: 2px 4px; outline: none; user-select: text; }
+    .frac-num { border-bottom: 1.5px solid #1864ab; padding: 2px 4px; outline: none; }
+    .frac-den { padding: 2px 4px; outline: none; }
     
-    /* 點擊 100% 觸發的刪除按鈕 */
-    .formula-del-btn { display: inline-inline-block; margin-left: 8px; cursor: pointer; color: #ff3b30; font-weight: bold; font-size: 0.95rem; padding: 0 6px; background: rgba(255, 59, 48, 0.15); border-radius: 4px; user-select: none; line-height: 1.2; }
-    .formula-del-btn:hover { background: #ff3b30; color: #fff; }
+    /* 100% 可點擊刪除標籤 */
+    .formula-del-tag { background: #ff4d4f; color: #fff; font-size: 11px; font-weight: bold; border-radius: 3px; padding: 1px 5px; margin-left: 8px; cursor: pointer; display: inline-block; line-height: 1.2; }
+    .formula-del-tag:hover { background: #cf1322; }
 
     /* 表格樣式 */
     .acc-table { border-collapse: collapse; width: 100%; margin: 12px 0; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-radius: 6px; overflow: hidden; }
@@ -113,7 +113,6 @@
           <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
           <div class="doc-title" id="currentTitle">筆記</div>
         </div>
-        
         <span class="sync-status" id="syncStatus">⏳ 連線中...</span>
       </div>
 
@@ -127,8 +126,8 @@
         <button class="tool-btn" style="font-weight:900;" onmousedown="event.preventDefault(); toggleBold();">B 粗體</button>
         <button class="tool-btn btn-hl" onmousedown="event.preventDefault(); applyHighlight('#ffec99');">🖍️ 螢光筆</button>
         <button class="tool-btn btn-clear" onmousedown="event.preventDefault(); clearFormatting();">🧹 清除格式</button>
-        <button class="tool-btn btn-formula" onclick="openFormulaModal()">🔍 搜尋會計公式</button>
-        <button class="tool-btn btn-danger" onclick="removeAllFormulas()">🔥 刪除本頁所有公式</button>
+        <button class="tool-btn btn-formula" onclick="openFormulaModal()">🔍 搜尋/插入會計公式</button>
+        <button class="tool-btn btn-danger" onclick="purgeAllFormulas()">🔥 清空頁面舊公式</button>
         <button class="tool-btn btn-tbl" onclick="insertDefaultTable()">📊 插入預設表格</button>
         <button class="tool-btn" onclick="addRow()">➕ 列</button>
         <button class="tool-btn" onclick="addCol()">➕ 欄</button>
@@ -161,10 +160,10 @@
   <div class="modal-overlay" id="formulaModal">
     <div class="modal-card">
       <div class="modal-header">
-        <span>🧮 點擊公式即可帶入筆記</span>
+        <span>🧮 點擊帶入會計公式 (含折舊)</span>
         <button class="micro-btn" style="font-size:1.2rem;" onclick="closeFormulaModal()">✕</button>
       </div>
-      <input type="text" class="search-input" id="formulaSearchInput" placeholder="搜尋：應收、存貨、週轉、利率、負債..." oninput="filterFormulas()">
+      <input type="text" class="search-input" id="formulaSearchInput" placeholder="搜尋：折舊、直線法、年數合計、應收、存貨、率..." oninput="filterFormulas()">
       <div class="formula-list" id="formulaList"></div>
     </div>
   </div>
@@ -213,7 +212,16 @@
       { id: "c14", title: "其他", content: "" }
     ];
 
+    // 新增折舊相關公式庫
     const accountingFormulas = [
+      /* --- 折舊方法公式 --- */
+      { name: "直線法折舊 (每期)", num: "成本 - 殘值", den: "耐用年數" },
+      { name: "年數合計法 (折舊)", num: "Cost - Residual × 剩餘年數", den: "N(N+1) / 2" },
+      { name: "雙倍餘額遞減法 (折舊額)", customText: "期初帳面金額 × (2 / 耐用年數)" },
+      { name: "生產數量法 (單位折舊)", num: "取得成本 - 殘值", den: "預計總生產量(或使用數)" },
+      { name: "可折舊成本", customText: "取得成本 - 預計殘值" },
+
+      /* --- 比率與財務公式 --- */
       { name: "應收帳款週轉率", num: "銷貨淨額", den: "平均應收帳款淨額" },
       { name: "應收帳款週轉天數", num: "365 天", den: "應收帳款週轉率" },
       { name: "存貨週轉率", num: "銷貨成本", den: "平均存貨" },
@@ -225,9 +233,7 @@
       { name: "流動比率", num: "流動資產", den: "流動負債" },
       { name: "速動比率", num: "速動資產", den: "流動負債" },
       { name: "資產報酬率 (ROA)", num: "淨利 + 利息費用×(1-稅率)", den: "平均資產總額" },
-      { name: "權益報酬率 (ROE)", num: "本期淨利", den: "平均權益總額" },
-      { name: "純益率", num: "本期淨利", den: "銷貨收入淨額" },
-      { name: "有效利率/隱含利率", num: "實際利息支出", den: "期初債務帳面金額" }
+      { name: "權益報酬率 (ROE)", num: "本期淨利", den: "平均權益總額" }
     ];
 
     let chapters = [...defaultChapters];
@@ -236,21 +242,17 @@
     let isCloudLoaded = false;
     let lastCellContext = null;
 
-    // ✨ 全局監聽：確保點擊 ✕ 按鈕絕對能刪除公式！
-    document.addEventListener('DOMContentLoaded', () => {
-      const viewer = document.getElementById('noteViewer');
-      viewer.addEventListener('click', (e) => {
-        const delBtn = e.target.closest('.formula-del-btn');
-        if (delBtn) {
-          e.preventDefault();
-          e.stopPropagation();
-          const box = delBtn.closest('.formula-box');
-          if (box) {
-            box.remove();
-            debouncedSave();
-          }
+    // ✨ 點擊事件全局委派：確保點擊「刪除標籤」時 100% 瞬間精準移除公式框！
+    document.addEventListener('click', function(e) {
+      if (e.target && e.target.classList.contains('formula-del-tag')) {
+        e.preventDefault();
+        e.stopPropagation();
+        const box = e.target.closest('.formula-box');
+        if (box) {
+          box.remove();
+          debouncedSave();
         }
-      });
+      }
     });
 
     async function initFirebaseData() {
@@ -349,44 +351,20 @@
         const viewer = document.getElementById("noteViewer");
         viewer.innerHTML = chap.content || "";
         document.getElementById("currentTitle").innerText = chap.title;
-
-        // 自動升級雲端載入的舊公式結構
-        fixAndUpgradeFormulas(viewer);
       }
       renderSidebar();
     }
 
-    // ✨ 自動升級舊版公式，補上 contenteditable="false" 與刪除鈕
-    function fixAndUpgradeFormulas(container) {
-      if (!container) return;
-      const boxes = container.querySelectorAll('.formula-box');
-      boxes.forEach(box => {
-        box.setAttribute('contenteditable', 'false');
-        box.querySelectorAll('.frac-num, .frac-den').forEach(el => {
-          el.setAttribute('contenteditable', 'true');
-        });
-        let delBtn = box.querySelector('.formula-del-btn');
-        if (!delBtn) {
-          delBtn = document.createElement('span');
-          delBtn.className = 'formula-del-btn';
-          delBtn.innerText = '✕';
-          delBtn.title = '刪除公式';
-          box.appendChild(delBtn);
-        }
-        delBtn.setAttribute('contenteditable', 'false');
-      });
-    }
-
-    // ✨ 一鍵刪除本頁所有公式（保底安全按鈕）
-    function removeAllFormulas() {
+    // 🔥 清空頁面舊公式：解決壞公式死纏爛打的最強終極按鈕
+    function purgeAllFormulas() {
       const viewer = document.getElementById("noteViewer");
       const boxes = viewer.querySelectorAll('.formula-box');
       if (boxes.length === 0) {
         alert("當前頁面沒有公式！");
         return;
       }
-      if (confirm(`確定要刪除當前頁面的全部 ${boxes.length} 個公式嗎？`)) {
-        boxes.forEach(el => el.remove());
+      if (confirm(`確定要將當前頁面的全部 ${boxes.length} 個公式全數刪除嗎？`)) {
+        boxes.forEach(box => box.remove());
         debouncedSave();
       }
     }
@@ -532,7 +510,7 @@
       document.getElementById('ctxMenu').style.display = 'none';
     }
 
-    /* --- 會計公式彈窗與帶有 ✕ 刪除按鈕邏輯 --- */
+    /* --- 公式彈窗 --- */
     function openFormulaModal() {
       document.getElementById('formulaModal').classList.add('show');
       document.getElementById('formulaSearchInput').value = '';
@@ -572,13 +550,16 @@
       });
     }
 
+    /* ✨ 插入帶有 contenteditable="false" 的紅色實心刪除標籤 */
     function insertFormulaToNote(f) {
       let html = '';
+      const delTagHtml = `<span class="formula-del-tag" contenteditable="false">刪除</span>`;
+
       if (f.customText) {
         html = `
           <span class="formula-box" contenteditable="false">
             <b>${f.name}</b>&nbsp;=&nbsp;${f.customText}
-            <span class="formula-del-btn" contenteditable="false" title="刪除公式">✕</span>
+            ${delTagHtml}
           </span>&nbsp;
         `;
       } else {
@@ -589,7 +570,7 @@
               <span class="frac-num" contenteditable="true">${f.num}</span>
               <span class="frac-den" contenteditable="true">${f.den}</span>
             </span>
-            <span class="formula-del-btn" contenteditable="false" title="刪除公式">✕</span>
+            ${delTagHtml}
           </span>&nbsp;
         `;
       }
