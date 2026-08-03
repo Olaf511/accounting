@@ -40,6 +40,7 @@
     .tool-btn.btn-hl { background: #fff9db; border-color: #fcc419; color: #856404; font-weight: 600; }
     .tool-btn.btn-tbl { background: #e7f5ff; border-color: #74c0fc; color: #1864ab; font-weight: 600; }
     .tool-btn.btn-formula { background: #f3d9fa; border-color: #e599f7; color: #862e9c; font-weight: 600; }
+    .tool-btn.btn-danger { background: #fff5f5; border-color: #ff8787; color: #e03131; }
 
     .color-group { display: inline-flex; align-items: center; gap: 6px; padding-right: 4px; flex-shrink: 0; }
     .color-btn { width: 22px; height: 22px; border-radius: 50%; border: 2px solid #ccc; cursor: pointer; flex-shrink: 0; }
@@ -52,14 +53,19 @@
 
     /* 公式分數樣式 */
     .frac-wrap { display: inline-flex; flex-direction: column; vertical-align: middle; text-align: center; font-size: 0.88em; padding: 0 4px; line-height: 1.1; margin: 0 4px; font-weight: 600; color: #1864ab; }
-    .frac-num { border-bottom: 1.5px solid #1864ab; padding: 2px 4px; }
-    .frac-den { padding: 2px 4px; }
-    .formula-box { display: inline-flex; align-items: center; background: #e7f5ff; border: 1px solid #a5d8ff; border-radius: 6px; padding: 4px 8px; margin: 4px 0; font-size: 0.92rem; }
+    .frac-num { border-bottom: 1.5px solid #1864ab; padding: 2px 4px; outline: none; }
+    .frac-den { padding: 2px 4px; outline: none; }
+    .formula-box { display: inline-flex; align-items: center; background: #e7f5ff; border: 1px solid #a5d8ff; border-radius: 6px; padding: 4px 8px; margin: 4px 2px; font-size: 0.92rem; }
 
     /* 表格樣式 */
     .acc-table { border-collapse: collapse; width: 100%; margin: 12px 0; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-radius: 6px; overflow: hidden; }
-    .acc-table th, .acc-table td { border: 1px solid #ced4da; padding: 8px 12px; text-align: left; font-size: 0.9rem; min-width: 80px; }
+    .acc-table th, .acc-table td { border: 1px solid #ced4da; padding: 8px 12px; text-align: left; font-size: 0.9rem; min-width: 80px; outline: none; }
     .acc-table th { background: #f1f3f5; font-weight: 700; color: #495057; }
+
+    /* 右鍵選單 */
+    #ctxMenu { position: fixed; background: #fff; border: 1px solid #ccc; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border-radius: 8px; padding: 6px 0; z-index: 1000; display: none; font-size: 0.88rem; }
+    #ctxMenu div { padding: 8px 16px; cursor: pointer; }
+    #ctxMenu div:hover { background: #f1f3f5; color: #007aff; }
 
     .tree-box { position: absolute; min-width: 120px; min-height: 50px; background: #fff; border: 2px solid #007aff; border-radius: 8px; font-size: 0.85rem; z-index: 10; box-shadow: 0 3px 8px rgba(0,0,0,0.12); touch-action: none; resize: both; overflow: auto; display: inline-block; }
     .box-drag-handle { background: #f0f4f8; height: 18px; cursor: move; border-top-left-radius: 6px; border-top-right-radius: 6px; border-bottom: 1px solid #e0e0e0; }
@@ -74,8 +80,7 @@
     .search-input { width: 100%; padding: 8px 12px; font-size: 0.95rem; border: 1px solid #ced4da; border-radius: 6px; margin-bottom: 12px; outline: none; }
     .formula-list { overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 8px; }
     .formula-item { padding: 10px; border: 1px solid #e9ecef; border-radius: 8px; cursor: pointer; transition: background 0.15s; }
-    .formula-item:hover { background: #f8f9fa; border-color: #74c0fc; }
-    .formula-title { font-weight: bold; color: #1864ab; margin-bottom: 4px; }
+    .formula-item:hover { background: #e7f5ff; border-color: #74c0fc; }
 
     @media (max-width: 768px) {
       .menu-toggle { display: block; }
@@ -84,7 +89,7 @@
     }
   </style>
 </head>
-<body>
+<body onclick="hideContextMenu()">
 
   <div id="sidebarOverlay" onclick="closeSidebar()"></div>
 
@@ -117,7 +122,12 @@
         <button class="tool-btn" style="font-weight:900;" onmousedown="event.preventDefault(); toggleBold();">B 粗體</button>
         <button class="tool-btn btn-hl" onmousedown="event.preventDefault(); applyHighlight('#ffec99');">🖍️ 螢光筆</button>
         <button class="tool-btn btn-formula" onclick="openFormulaModal()">🔍 搜尋會計公式</button>
-        <button class="tool-btn btn-tbl" onclick="insertCustomTable()">📊 插入表格</button>
+        <button class="tool-btn btn-tbl" onclick="insertDefaultTable()">📊 插入預設表格</button>
+        <button class="tool-btn" onclick="addRow()">➕ 列</button>
+        <button class="tool-btn" onclick="addCol()">➕ 欄</button>
+        <button class="tool-btn btn-danger" onclick="delRow()">➖ 列</button>
+        <button class="tool-btn btn-danger" onclick="delCol()">➖ 欄</button>
+        <button class="tool-btn btn-danger" onclick="deleteTable()">🗑️ 刪除表格</button>
         <button class="tool-btn btn-primary" onclick="addFreeBox()">🔳 文字框</button>
         <button class="tool-btn" onclick="exportData()">📥 備份</button>
         <button class="tool-btn" onclick="importData()">📤 還原</button>
@@ -126,18 +136,27 @@
     </div>
 
     <div class="editor-wrapper" id="canvasWrapper">
-      <div id="noteViewer" contenteditable="true" oninput="debouncedSave()"></div>
+      <div id="noteViewer" contenteditable="true" oninput="debouncedSave()" oncontextmenu="handleRightClick(event)"></div>
     </div>
   </div>
 
-  <!-- 公式搜尋彈窗 -->
+  <!-- 表格右鍵選單 -->
+  <div id="ctxMenu">
+    <div onclick="addRow()">➕ 下方插入列</div>
+    <div onclick="addCol()">➕ 右側插入欄</div>
+    <div onclick="delRow()">➖ 刪除此列</div>
+    <div onclick="delCol()">➖ 刪除此欄</div>
+    <div onclick="deleteTable()" style="color:#e0e031; font-weight:bold;">🗑️ 刪除整個表格</div>
+  </div>
+
+  <!-- 公式搜尋帶入彈窗 -->
   <div class="modal-overlay" id="formulaModal">
     <div class="modal-card">
       <div class="modal-header">
-        <span>🧮 常用會計公式庫</span>
+        <span>🧮 點擊公式即可帶入筆記</span>
         <button class="micro-btn" style="font-size:1.2rem;" onclick="closeFormulaModal()">✕</button>
       </div>
-      <input type="text" class="search-input" id="formulaSearchInput" placeholder="搜尋公式名稱（例如：應收、存貨、利率、負債）..." oninput="filterFormulas()">
+      <input type="text" class="search-input" id="formulaSearchInput" placeholder="搜尋：應收、存貨、週轉、利率、負債..." oninput="filterFormulas()">
       <div class="formula-list" id="formulaList"></div>
     </div>
   </div>
@@ -186,7 +205,6 @@
       { id: "c14", title: "其他", content: "" }
     ];
 
-    // 會計常用公式資料庫
     const accountingFormulas = [
       { name: "應收帳款週轉率", num: "銷貨淨額", den: "平均應收帳款淨額" },
       { name: "應收帳款週轉天數", num: "365 天", den: "應收帳款週轉率" },
@@ -197,21 +215,21 @@
       { name: "權益比率", num: "權益總額", den: "資產總額" },
       { name: "利息保障倍數", num: "稅前息前純益 (EBIT)", den: "利息費用" },
       { name: "流動比率", num: "流動資產", den: "流動負債" },
-      { name: "速動比率", num: "速動資產 (流動資產 - 存貨 - 預付款)", den: "流動負債" },
-      { name: "資產報酬率 (ROA)", num: "淨利 + 利息費用×(1 - 稅率)", den: "平均資產總額" },
-      { name: "權益報酬率 (ROE)", num: "歸屬於母公司業主淨利", den: "平均權益總額" },
+      { name: "速動比率", num: "速動資產", den: "流動負債" },
+      { name: "資產報酬率 (ROA)", num: "淨利 + 利息費用×(1-稅率)", den: "平均資產總額" },
+      { name: "權益報酬率 (ROE)", num: "本期淨利", den: "平均權益總額" },
       { name: "純益率", num: "本期淨利", den: "銷貨收入淨額" },
-      { name: "有效利率/隱含利率", num: "當期利息費用 (或實際利息支出)", den: "期初債務帳面金額" }
+      { name: "有效利率/隱含利率", num: "實際利息支出", den: "期初債務帳面金額" }
     ];
 
     let chapters = [...defaultChapters];
     let currentChapId = "c1";
     let saveTimeout = null;
     let isCloudLoaded = false;
+    let lastCellContext = null;
 
     async function initFirebaseData() {
       const syncStatus = document.getElementById("syncStatus");
-      
       let checks = 0;
       while (!window.db && checks < 20) {
         await new Promise(r => setTimeout(r, 200));
@@ -313,35 +331,130 @@
       return chapters.find(c => c.id === id);
     }
 
-    /* --- 📊 彈窗自由插入表格 --- */
-    function insertCustomTable() {
-      const rows = prompt("請輸入表格「行數 (列)」：", "3");
-      const cols = prompt("請輸入表格「欄數 (欄)」：", "3");
-      
-      const r = parseInt(rows);
-      const c = parseInt(cols);
-
-      if (isNaN(r) || isNaN(c) || r <= 0 || c <= 0) return;
-
-      let tableHtml = '<table class="acc-table"><tbody>';
-      for (let i = 0; i < r; i++) {
-        tableHtml += '<tr>';
-        for (let j = 0; j < c; j++) {
-          if (i === 0) {
-            tableHtml += `<th>標題 ${j+1}</th>`;
-          } else {
-            tableHtml += `<td>內容</td>`;
-          }
-        }
-        tableHtml += '</tr>';
-      }
-      tableHtml += '</tbody></table><p><br></p>';
-
-      document.execCommand('insertHTML', false, tableHtml);
+    /* --- 表格核心控制 --- */
+    function insertDefaultTable() {
+      const html = `
+        <table class="acc-table">
+          <thead>
+            <tr><th>項目</th><th>永續盤存制</th><th>定期盤存制</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>平時進貨</td><td>存貨</td><td>進貨</td></tr>
+            <tr><td>期末結轉</td><td>不需調整</td><td>盤點並結轉成本</td></tr>
+          </tbody>
+        </table><p><br></p>
+      `;
+      document.execCommand('insertHTML', false, html);
       debouncedSave();
     }
 
-    /* --- 🔍 會計公式彈窗邏輯 --- */
+    function getActiveTableAndCell() {
+      if (lastCellContext) {
+        let tbl = lastCellContext.closest('table');
+        let cell = lastCellContext;
+        return { tbl, cell };
+      }
+      const sel = window.getSelection();
+      if (!sel.rangeCount) return { tbl: null, cell: null };
+      let node = sel.getRangeAt(0).commonAncestorContainer;
+      while (node && node.id !== 'noteViewer') {
+        if (node.nodeName === 'TD' || node.nodeName === 'TH') {
+          return { tbl: node.closest('table'), cell: node };
+        }
+        node = node.parentNode;
+      }
+      return { tbl: null, cell: null };
+    }
+
+    function addRow() {
+      const { tbl, cell } = getActiveTableAndCell();
+      if (!tbl) return alert("請先將游標點擊在表格格子內部！");
+      const colCount = tbl.rows[0].cells.length;
+      const rowIndex = cell ? cell.parentElement.rowIndex + 1 : tbl.rows.length;
+      const newRow = tbl.insertRow(rowIndex);
+      for (let i = 0; i < colCount; i++) {
+        let newCell = newRow.insertCell(i);
+        newCell.innerHTML = "內容";
+      }
+      debouncedSave();
+    }
+
+    function addCol() {
+      const { tbl, cell } = getActiveTableAndCell();
+      if (!tbl) return alert("請先將游標點擊在表格格子內部！");
+      const cellIndex = cell ? cell.cellIndex + 1 : tbl.rows[0].cells.length;
+      for (let i = 0; i < tbl.rows.length; i++) {
+        let row = tbl.rows[i];
+        let newCell = i === 0 && row.parentElement.tagName === 'THEAD' ? document.createElement('th') : row.insertCell(cellIndex);
+        if (i === 0 && row.parentElement.tagName === 'THEAD') {
+          newCell.innerHTML = "標題";
+          if (cellIndex >= row.cells.length) row.appendChild(newCell);
+          else row.insertBefore(newCell, row.cells[cellIndex]);
+        } else {
+          newCell.innerHTML = "內容";
+        }
+      }
+      debouncedSave();
+    }
+
+    function delRow() {
+      const { tbl, cell } = getActiveTableAndCell();
+      if (!tbl) return alert("請先將游標點擊在表格內部！");
+      if (tbl.rows.length <= 1) {
+        tbl.remove();
+      } else {
+        const rowIndex = cell ? cell.parentElement.rowIndex : tbl.rows.length - 1;
+        tbl.deleteRow(rowIndex);
+      }
+      debouncedSave();
+    }
+
+    function delCol() {
+      const { tbl, cell } = getActiveTableAndCell();
+      if (!tbl) return alert("請先將游標點擊在表格內部！");
+      const colCount = tbl.rows[0].cells.length;
+      if (colCount <= 1) {
+        tbl.remove();
+      } else {
+        const colIndex = cell ? cell.cellIndex : colCount - 1;
+        for (let i = 0; i < tbl.rows.length; i++) {
+          tbl.rows[i].deleteCell(colIndex);
+        }
+      }
+      debouncedSave();
+    }
+
+    function deleteTable() {
+      const { tbl } = getActiveTableAndCell();
+      if (!tbl) return alert("請先將游標點擊在表格內部！");
+      if (confirm("確定要刪除整個表格嗎？")) {
+        tbl.remove();
+        debouncedSave();
+      }
+    }
+
+    /* 右鍵選單 */
+    function handleRightClick(e) {
+      let target = e.target;
+      while (target && target.id !== 'noteViewer') {
+        if (target.tagName === 'TD' || target.tagName === 'TH') {
+          e.preventDefault();
+          lastCellContext = target;
+          const menu = document.getElementById('ctxMenu');
+          menu.style.left = e.clientX + 'px';
+          menu.style.top = e.clientY + 'px';
+          menu.style.display = 'block';
+          return;
+        }
+        target = target.parentNode;
+      }
+    }
+
+    function hideContextMenu() {
+      document.getElementById('ctxMenu').style.display = 'none';
+    }
+
+    /* --- 會計公式彈窗邏輯 --- */
     function openFormulaModal() {
       document.getElementById('formulaModal').classList.add('show');
       document.getElementById('formulaSearchInput').value = '';
@@ -387,13 +500,14 @@
         html = `<div class="formula-box"><b>${f.name}</b>&nbsp;=&nbsp;${f.customText}</div>&nbsp;`;
       } else {
         html = `
-          <div class="formula-box">
+          <div class="formula-box" contenteditable="false">
             <b>${f.name}</b>&nbsp;=&nbsp;
             <span class="frac-wrap"><span class="frac-num" contenteditable="true">${f.num}</span><span class="frac-den" contenteditable="true">${f.den}</span></span>
           </div>&nbsp;
         `;
       }
       closeFormulaModal();
+      document.getElementById('noteViewer').focus();
       document.execCommand('insertHTML', false, html);
       debouncedSave();
     }
