@@ -80,12 +80,6 @@
     .box-quick-del { position: absolute; top: -8px; right: -8px; width: 22px; height: 22px; background: #ff3b30; color: white; border-radius: 50%; font-size: 13px; font-weight: bold; line-height: 22px; text-align: center; cursor: pointer; z-index: 30; border: 1.5px solid #fff; }
 
     .box-content { padding: 6px 10px; outline: none; cursor: text; min-height: 30px; }
-    
-    .anchor-point { position: absolute; width: 14px; height: 14px; background: #007aff; border-radius: 50%; cursor: pointer; z-index: 20; border: 1px solid #fff; }
-    .anchor-top { top: -7px; left: 50%; transform: translateX(-50%); }
-    .anchor-bottom { bottom: -7px; left: 50%; transform: translateX(-50%); }
-    .anchor-left { left: -7px; top: 50%; transform: translateY(-50%); }
-    .anchor-right { right: -7px; top: 50%; transform: translateY(-50%); }
 
     .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); display: none; justify-content: center; align-items: center; z-index: 300; padding: 15px; }
     .modal-card { background: white; padding: 18px; border-radius: 12px; width: 100%; max-width: 450px; box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
@@ -161,36 +155,20 @@
     </div>
   </div>
 
-  <div class="modal-overlay" id="inputModal">
-    <div class="modal-card">
-      <h3 id="modalTitle">新增</h3>
-      <div id="modalSelectGroup" style="display:none;">
-        <label style="font-size:0.75rem; color:#666;">選擇所屬章節：</label>
-        <select id="chapterSelect" style="width:100%; padding:8px; margin-bottom:10px;"></select>
-      </div>
-      <input type="text" id="modalInput" placeholder="請輸入名稱...">
-      <div class="modal-btns">
-        <button class="tool-btn" onclick="closeModal()">取消</button>
-        <button class="btn-action" style="flex:none; padding: 6px 16px;" onclick="submitModal()">確定</button>
-      </div>
-    </div>
-  </div>
-
   <!-- 引入 Firebase SDK -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    // 帶入你的專屬 Firebase Config
+    // 填入 olaf-accounting 專屬 Firebase Config
     const firebaseConfig = {
-      apiKey: "AIzaSyABw6cYyCOpgBV3yRlqeYJ9B33pVEQizZA",
-      authDomain: "olaf-travel.firebaseapp.com",
-      databaseURL: "https://olaf-travel-default-rtdb.asia-southeast1.firebasedatabase.app",
-      projectId: "olaf-travel",
-      storageBucket: "olaf-travel.firebasestorage.app",
-      messagingSenderId: "398106561083",
-      appId: "1:398106561083:web:9c617bd87060d57d84ea1e",
-      measurementId: "G-Q9SQY8JKM5"
+      apiKey: "AIzaSyBk5qBqzA7WCePRVRNn_8oRiWDLfKnV8Hc",
+      authDomain: "olaf-accounting.firebaseapp.com",
+      projectId: "olaf-accounting",
+      storageBucket: "olaf-accounting.firebasestorage.app",
+      messagingSenderId: "839216246057",
+      appId: "1:839216246057:web:4a94ae9424c5b3d85c5b38",
+      measurementId: "G-M8KFEMXSW5"
     };
 
     const app = initializeApp(firebaseConfig);
@@ -201,7 +179,7 @@
     window.setDoc = setDoc;
     window.onSnapshot = onSnapshot;
 
-    // 啟動自動連線與實時同步
+    // 啟動實時雲端同步
     initCloudSync();
   </script>
 
@@ -217,7 +195,7 @@
       try {
         const docRef = window.doc(window.db, "notes", "my_accounting_notes");
         
-        // 監聽雲端資料，實現跨裝置即時同步
+        // 實時監聽雲端資料變更
         window.onSnapshot(docRef, (docSnap) => {
           if (docSnap.exists()) {
             chapters = docSnap.data().chapters;
@@ -227,7 +205,6 @@
             syncStatus.innerText = "☁️ 已與雲端同步";
             syncStatus.style.color = "#28a745";
           } else {
-            // 若雲端尚無資料，則初始化推送一次
             saveData();
           }
         });
