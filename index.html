@@ -3,12 +3,27 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>會計學筆記系統 (強效刪除與折舊公式版)</title>
+  <title>國考筆記系統 (會計 / 會審法規 / 公民)</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body { height: 100%; width: 100%; overflow: hidden; }
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; display: flex; background: #f8f9fa; color: #333; position: relative; }
-    
+    html, body { height: 100%; width: 100%; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f8f9fa; color: #333; }
+
+    /* 首頁樣式 */
+    #homePage { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #f0f2f5; z-index: 1000; overflow-y: auto; padding: 24px 16px; display: flex; flex-direction: column; align-items: center; }
+    .home-header { text-align: center; margin-bottom: 28px; margin-top: 10px; }
+    .home-title { font-size: 1.8rem; font-weight: 800; color: #1a1a1a; margin-bottom: 8px; }
+    .home-subtitle { font-size: 0.95rem; color: #666; }
+
+    .subject-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; width: 100%; max-width: 960px; }
+    .subject-card { background: #fff; border-radius: 12px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.06); cursor: pointer; border: 2px solid transparent; transition: all 0.2s ease; display: flex; flex-direction: column; justify-content: space-between; min-height: 180px; }
+    .subject-card:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); border-color: #007aff; }
+    .card-icon { font-size: 2.2rem; margin-bottom: 12px; }
+    .card-title { font-size: 1.25rem; font-weight: bold; color: #222; margin-bottom: 6px; }
+    .card-desc { font-size: 0.85rem; color: #666; line-height: 1.5; }
+    .card-btn { margin-top: 16px; font-size: 0.85rem; font-weight: bold; color: #007aff; display: flex; align-items: center; gap: 4px; }
+
+    /* 主界面樣式 */
+    #appPage { display: none; width: 100vw; height: 100vh; }
     #sidebarOverlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.4); z-index: 190; display: none; }
     #sidebarOverlay.show { display: block; }
 
@@ -52,13 +67,12 @@
     .editor-wrapper { flex: 1; padding: 20px; overflow-y: auto; position: relative; height: 100%; }
     #noteViewer { min-height: 100%; font-size: 0.98rem; line-height: 1.8; color: #2b2b2b; outline: none; padding-bottom: 250px; position: relative; z-index: 1; }
 
-    /* 公式區塊與刪除按鈕標籤 */
+    /* 公式區塊與刪除標籤 */
     .formula-box { display: inline-flex; align-items: center; background: #e7f5ff; border: 1.5px solid #74c0fc; border-radius: 6px; padding: 4px 8px; margin: 4px; font-size: 0.92rem; vertical-align: middle; position: relative; user-select: none; }
     .frac-wrap { display: inline-flex; flex-direction: column; vertical-align: middle; text-align: center; font-size: 0.88em; padding: 0 4px; line-height: 1.1; margin: 0 4px; font-weight: 600; color: #1864ab; }
     .frac-num { border-bottom: 1.5px solid #1864ab; padding: 2px 4px; outline: none; }
     .frac-den { padding: 2px 4px; outline: none; }
     
-    /* 100% 可點擊刪除標籤 */
     .formula-del-tag { background: #ff4d4f; color: #fff; font-size: 11px; font-weight: bold; border-radius: 3px; padding: 1px 5px; margin-left: 8px; cursor: pointer; display: inline-block; line-height: 1.2; }
     .formula-del-tag:hover { background: #cf1322; }
 
@@ -77,10 +91,10 @@
     .box-quick-del { position: absolute; top: -8px; right: -8px; width: 22px; height: 22px; background: #ff3b30; color: white; border-radius: 50%; font-size: 13px; font-weight: bold; line-height: 22px; text-align: center; cursor: pointer; z-index: 30; border: 1.5px solid #fff; }
     .box-content { padding: 6px 10px; outline: none; cursor: text; min-height: 30px; }
 
-    /* 公式搜尋彈窗 */
+    /* 彈窗 */
     .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); z-index: 300; display: none; justify-content: center; align-items: center; }
     .modal-overlay.show { display: flex; }
-    .modal-card { background: #fff; width: 90%; max-width: 500px; border-radius: 12px; padding: 18px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); max-height: 80vh; display: flex; flex-direction: column; }
+    .modal-card { background: #fff; width: 90%; max-width: 550px; border-radius: 12px; padding: 18px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); max-height: 80vh; display: flex; flex-direction: column; }
     .modal-header { display: flex; justify-content: space-between; align-items: center; font-weight: bold; font-size: 1.1rem; margin-bottom: 12px; }
     .search-input { width: 100%; padding: 8px 12px; font-size: 0.95rem; border: 1px solid #ced4da; border-radius: 6px; margin-bottom: 12px; outline: none; }
     .formula-list { overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 8px; }
@@ -96,54 +110,94 @@
 </head>
 <body onclick="hideContextMenu()">
 
-  <div id="sidebarOverlay" onclick="closeSidebar()"></div>
-
-  <div id="sidebar">
-    <div class="sidebar-header">
-      <span>📚 會計學章節選單</span>
-      <button class="micro-btn" style="font-size:1rem;" onclick="closeSidebar()">✕</button>
+  <!-- 🏠 首頁入口 -->
+  <div id="homePage">
+    <div class="home-header">
+      <div class="home-title">📖 國家考試筆記學習系統</div>
+      <div class="home-subtitle">請選擇欲研讀的考試科目</div>
     </div>
-    <div class="chapter-list" id="chapterList"></div>
+    <div class="subject-grid">
+      <div class="subject-card" onclick="enterSubject('acc')">
+        <div>
+          <div class="card-icon">🧮</div>
+          <div class="card-title">會計學</div>
+          <div class="card-desc">包含初會、中會章節，附帶折舊公式、財務比率、永續/定期盤存表格範本。</div>
+        </div>
+        <div class="card-btn">進入科目筆記 ➔</div>
+      </div>
+
+      <div class="subject-card" onclick="enterSubject('law')">
+        <div>
+          <div class="card-icon">⚖️</div>
+          <div class="card-title">會計審計法規</div>
+          <div class="card-desc">涵蓋預算法、會計法、決算法、審計法四大法規章節與常用法條對照表。</div>
+        </div>
+        <div class="card-btn" style="color:#2b8a3e;">進入科目筆記 ➔</div>
+      </div>
+
+      <div class="subject-card" onclick="enterSubject('civ')">
+        <div>
+          <div class="card-icon">🏛️</div>
+          <div class="card-title">公民</div>
+          <div class="card-desc">涵蓋心理社會、政治民主、法律常識、經濟學供需理論重點筆記觀念。</div>
+        </div>
+        <div class="card-btn" style="color:#e03131;">進入科目筆記 ➔</div>
+      </div>
+    </div>
   </div>
 
-  <div id="main">
-    <div class="sticky-header-container">
-      <div class="top-bar">
-        <div class="top-bar-left">
-          <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
-          <div class="doc-title" id="currentTitle">筆記</div>
-        </div>
-        <span class="sync-status" id="syncStatus">⏳ 連線中...</span>
-      </div>
+  <!-- 📚 主筆記系統 -->
+  <div id="appPage">
+    <div id="sidebarOverlay" onclick="closeSidebar()"></div>
 
-      <div class="toolbar">
-        <div class="color-group">
-          <div class="color-btn color-black" title="黑色" onmousedown="event.preventDefault(); applyTextColor('#000000');"></div>
-          <div class="color-btn color-red" title="紅色" onmousedown="event.preventDefault(); applyTextColor('#e63946');"></div>
-          <div class="color-btn color-blue" title="藍色" onmousedown="event.preventDefault(); applyTextColor('rgb(29, 93, 221)');"></div>
-        </div>
-
-        <button class="tool-btn" style="font-weight:900;" onmousedown="event.preventDefault(); toggleBold();">B 粗體</button>
-        <button class="tool-btn btn-hl" onmousedown="event.preventDefault(); applyHighlight('#ffec99');">🖍️ 螢光筆</button>
-        <button class="tool-btn btn-clear" onmousedown="event.preventDefault(); clearFormatting();">🧹 清除格式</button>
-        <button class="tool-btn btn-formula" onclick="openFormulaModal()">🔍 搜尋/插入會計公式</button>
-        <button class="tool-btn btn-danger" onclick="purgeAllFormulas()">🔥 清空頁面舊公式</button>
-        <button class="tool-btn btn-tbl" onclick="insertDefaultTable()">📊 插入預設表格</button>
-        <button class="tool-btn" onclick="addRow()">➕ 列</button>
-        <button class="tool-btn" onclick="addCol()">➕ 欄</button>
-        <button class="tool-btn btn-danger" onclick="delRow()">➖ 列</button>
-        <button class="tool-btn btn-danger" onclick="delCol()">➖ 欄</button>
-        <button class="tool-btn btn-danger" onclick="deleteTable()">🗑️ 刪除表格</button>
-        <button class="tool-btn btn-primary" onclick="addFreeBox()">🔳 文字框</button>
-        <button class="tool-btn btn-danger" onclick="resetCurrentChapter()">💣 清空本章筆記</button>
-        <button class="tool-btn" onclick="exportData()">📥 備份</button>
-        <button class="tool-btn" onclick="importData()">📤 還原</button>
-        <input type="file" id="importInput" style="display:none;" onchange="handleFileSelect(event)">
+    <div id="sidebar">
+      <div class="sidebar-header">
+        <span id="sidebarSubjectTitle">📚 章節選單</span>
+        <button class="micro-btn" style="font-size:1rem;" onclick="closeSidebar()">✕</button>
       </div>
+      <div class="chapter-list" id="chapterList"></div>
     </div>
 
-    <div class="editor-wrapper" id="canvasWrapper">
-      <div id="noteViewer" contenteditable="true" oninput="debouncedSave()" oncontextmenu="handleRightClick(event)"></div>
+    <div id="main">
+      <div class="sticky-header-container">
+        <div class="top-bar">
+          <div class="top-bar-left">
+            <button class="tool-btn" onclick="goHome()" style="padding: 4px 8px; font-weight:bold;">🏠 首頁</button>
+            <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+            <div class="doc-title" id="currentTitle">筆記</div>
+          </div>
+          <span class="sync-status" id="syncStatus">⏳ 連線中...</span>
+        </div>
+
+        <div class="toolbar">
+          <div class="color-group">
+            <div class="color-btn color-black" title="黑色" onmousedown="event.preventDefault(); applyTextColor('#000000');"></div>
+            <div class="color-btn color-red" title="紅色" onmousedown="event.preventDefault(); applyTextColor('#e63946');"></div>
+            <div class="color-btn color-blue" title="藍色" onmousedown="event.preventDefault(); applyTextColor('rgb(29, 93, 221)');"></div>
+          </div>
+
+          <button class="tool-btn" style="font-weight:900;" onmousedown="event.preventDefault(); toggleBold();">B 粗體</button>
+          <button class="tool-btn btn-hl" onmousedown="event.preventDefault(); applyHighlight('#ffec99');">🖍️ 螢光筆</button>
+          <button class="tool-btn btn-clear" onmousedown="event.preventDefault(); clearFormatting();">🧹 清除格式</button>
+          <button class="tool-btn btn-formula" id="formulaBtn" onclick="openFormulaModal()">🔍 搜尋速查/公式</button>
+          <button class="tool-btn btn-danger" onclick="purgeAllFormulas()">🔥 清空頁面舊公式</button>
+          <button class="tool-btn btn-tbl" onclick="insertDefaultTable()">📊 插入預設表格</button>
+          <button class="tool-btn" onclick="addRow()">➕ 列</button>
+          <button class="tool-btn" onclick="addCol()">➕ 欄</button>
+          <button class="tool-btn btn-danger" onclick="delRow()">➖ 列</button>
+          <button class="tool-btn btn-danger" onclick="delCol()">➖ 欄</button>
+          <button class="tool-btn btn-danger" onclick="deleteTable()">🗑️ 刪除表格</button>
+          <button class="tool-btn btn-primary" onclick="addFreeBox()">🔳 文字框</button>
+          <button class="tool-btn btn-danger" onclick="resetCurrentChapter()">💣 清空本章筆記</button>
+          <button class="tool-btn" onclick="exportData()">📥 備份</button>
+          <button class="tool-btn" onclick="importData()">📤 還原</button>
+          <input type="file" id="importInput" style="display:none;" onchange="handleFileSelect(event)">
+        </div>
+      </div>
+
+      <div class="editor-wrapper" id="canvasWrapper">
+        <div id="noteViewer" contenteditable="true" oninput="debouncedSave()" oncontextmenu="handleRightClick(event)"></div>
+      </div>
     </div>
   </div>
 
@@ -156,14 +210,14 @@
     <div onclick="deleteTable()" style="color:#e0e031; font-weight:bold;">🗑️ 刪除整個表格</div>
   </div>
 
-  <!-- 公式搜尋帶入彈窗 -->
+  <!-- 速查/公式彈窗 -->
   <div class="modal-overlay" id="formulaModal">
     <div class="modal-card">
       <div class="modal-header">
-        <span>🧮 點擊帶入會計公式 (含折舊)</span>
+        <span id="modalHeaderTitle">🧮 點擊帶入公式 / 重點法條</span>
         <button class="micro-btn" style="font-size:1.2rem;" onclick="closeFormulaModal()">✕</button>
       </div>
-      <input type="text" class="search-input" id="formulaSearchInput" placeholder="搜尋：折舊、直線法、年數合計、應收、存貨、率..." oninput="filterFormulas()">
+      <input type="text" class="search-input" id="formulaSearchInput" placeholder="輸入關鍵字搜尋..." oninput="filterFormulas()">
       <div class="formula-list" id="formulaList"></div>
     </div>
   </div>
@@ -190,59 +244,87 @@
     window.doc = doc;
     window.getDoc = getDoc;
     window.setDoc = setDoc;
-
-    initFirebaseData();
   </script>
 
   <script>
-    const defaultChapters = [
-      { id: "c1", title: "第一章 會計基本觀念", content: "" },
-      { id: "c2", title: "第二章 現金與銀行調節表", content: "" },
-      { id: "c3", title: "第三章 應收款與客戶合約收入", content: "" },
-      { id: "c4", title: "第四章 買賣業會計與存貨", content: "" },
-      { id: "c5", title: "第五章 不動產廠房及設備", content: "" },
-      { id: "c6", title: "第六章 遞耗、無形、生物資產及投資性不動產", content: "" },
-      { id: "c7", title: "第七章 流動負債、負債準備及或有資產/負債", content: "" },
-      { id: "c8", title: "第八章 金融負債", content: "" },
-      { id: "c9", title: "第九章 權益(公司會計)", content: "" },
-      { id: "c10", title: "第十章 金融資產", content: "" },
-      { id: "c11", title: "第十一章 現金流量表", content: "" },
-      { id: "c12", title: "第十二章 財務報表分析與綜合損益分析", content: "" },
-      { id: "c13", title: "第十三章 錯誤更正", content: "" },
-      { id: "c14", title: "其他", content: "" }
-    ];
+    /* 三大科目預設章節結構 */
+    const subjectData = {
+      acc: {
+        name: "會計學",
+        chapters: [
+          { id: "c1", title: "第一章 會計基本觀念", content: "" },
+          { id: "c2", title: "第二章 現金與銀行調節表", content: "" },
+          { id: "c3", title: "第三章 應收款與客戶合約收入", content: "" },
+          { id: "c4", title: "第四章 買賣業會計與存貨", content: "" },
+          { id: "c5", title: "第五章 不動產廠房及設備(含折舊)", content: "" },
+          { id: "c6", title: "第六章 遞耗、無形與生物資產", content: "" },
+          { id: "c7", title: "第七章 流動負債與負債準備", content: "" },
+          { id: "c8", title: "第八章 金融負債與公司債", content: "" },
+          { id: "c9", title: "第九章 權益(公司會計)", content: "" },
+          { id: "c10", title: "第十章 金融資產與投資", content: "" },
+          { id: "c11", title: "第十一章 現金流量表", content: "" },
+          { id: "c12", title: "第十二章 財務報表分析", content: "" },
+          { id: "c13", title: "第十三章 錯誤更正", content: "" }
+        ],
+        formulas: [
+          { name: "直線法折舊 (每期)", num: "成本 - 殘值", den: "耐用年數" },
+          { name: "年數合計法 (折舊)", num: "Cost - Residual × 剩餘年數", den: "N(N+1) / 2" },
+          { name: "雙倍餘額遞減法 (折舊額)", customText: "期初帳面金額 × (2 / 耐用年數)" },
+          { name: "生產數量法 (單位折舊)", num: "取得成本 - 殘值", den: "預計總生產量(或使用數)" },
+          { name: "應收帳款週轉率", num: "銷貨淨額", den: "平均應收帳款淨額" },
+          { name: "存貨週轉率", num: "銷貨成本", den: "平均存貨" },
+          { name: "流動比率", num: "流動資產", den: "流動負債" },
+          { name: "速動比率", num: "速動資產", den: "流動負債" }
+        ]
+      },
+      law: {
+        name: "會計審計法規",
+        chapters: [
+          { id: "l1", title: "第一章 預算法總則與編製", content: "" },
+          { id: "l2", title: "第二章 預算審議與執行", content: "" },
+          { id: "l3", title: "第三章 決算與特別預算", content: "" },
+          { id: "l4", title: "第四章 會計法總則與制度", content: "" },
+          { id: "l5", title: "第五章 會計事務與帳簿憑證", content: "" },
+          { id: "l6", title: "第六章 決算法編製與查核", content: "" },
+          { id: "l7", title: "第七章 審計法總則與職權", content: "" },
+          { id: "l8", title: "第八章 隨時稽察與財務審計", content: "" }
+        ],
+        formulas: [
+          { name: "預算法第18條", customText: "歲入、歲出、債務之舉借及以前年度歲計賸餘之移用，統稱為歲入歲出大綱。" },
+          { name: "預算法第22條", customText: "第一預備金於公務機關單位預算中設定之；第二預備金於總預算中設定之。" },
+          { name: "會計法第29條", customText: "會計憑證分為原始憑證與記帳憑證兩類。" },
+          { name: "審計法第2條", customText: "審計職權包括：監督預算之執行、核定收支命令、審核決算、稽察財物及財政違失。" }
+        ]
+      },
+      civ: {
+        name: "公民",
+        chapters: [
+          { id: "v1", title: "第一章 個人發展与社會互動", content: "" },
+          { id: "v2", title: "第二章 民主政治與憲政民主", content: "" },
+          { id: "v3", title: "第三章 政府架構與權力分立", content: "" },
+          { id: "v4", title: "第四章 法律基礎與民刑法常識", content: "" },
+          { id: "v5", title: "第五章 權利保障與行政救濟", content: "" },
+          { id: "v6", title: "第六章 市場機制與市場失靈", content: "" },
+          { id: "v7", title: "第七章 國民所得與總體經濟", content: "" },
+          { id: "v8", title: "第八章 全球化與國際關係", content: "" }
+        ],
+        formulas: [
+          { name: "機會成本", customText: "機會成本 = 選項本身的直接成本 + 放棄選項中價值最高者 (隱性成本)" },
+          { name: "需求法則", customText: "價格 (P) 上升 → 需求量 (Qd) 下降；價格 (P) 下降 → 需求量 (Qd) 上升" },
+          { name: "GDP 國內生產毛額", customText: "GDP = C (消費) + I (投資) + G (政府支出) + (X - M) (淨出口)" },
+          { name: "權力分立原則", customText: "立法權（立法院）、行政權（行政院）、司法權（司法院）、考試權、監察權" }
+        ]
+      }
+    };
 
-    // 新增折舊相關公式庫
-    const accountingFormulas = [
-      /* --- 折舊方法公式 --- */
-      { name: "直線法折舊 (每期)", num: "成本 - 殘值", den: "耐用年數" },
-      { name: "年數合計法 (折舊)", num: "Cost - Residual × 剩餘年數", den: "N(N+1) / 2" },
-      { name: "雙倍餘額遞減法 (折舊額)", customText: "期初帳面金額 × (2 / 耐用年數)" },
-      { name: "生產數量法 (單位折舊)", num: "取得成本 - 殘值", den: "預計總生產量(或使用數)" },
-      { name: "可折舊成本", customText: "取得成本 - 預計殘值" },
-
-      /* --- 比率與財務公式 --- */
-      { name: "應收帳款週轉率", num: "銷貨淨額", den: "平均應收帳款淨額" },
-      { name: "應收帳款週轉天數", num: "365 天", den: "應收帳款週轉率" },
-      { name: "存貨週轉率", num: "銷貨成本", den: "平均存貨" },
-      { name: "平均售貨天數", num: "365 天", den: "存貨週轉率" },
-      { name: "營業週期", customText: "應收帳款週轉天數 + 平均售貨天數" },
-      { name: "負債比率", num: "負債總額", den: "資產總額" },
-      { name: "權益比率", num: "權益總額", den: "資產總額" },
-      { name: "利息保障倍數", num: "稅前息前純益 (EBIT)", den: "利息費用" },
-      { name: "流動比率", num: "流動資產", den: "流動負債" },
-      { name: "速動比率", num: "速動資產", den: "流動負債" },
-      { name: "資產報酬率 (ROA)", num: "淨利 + 利息費用×(1-稅率)", den: "平均資產總額" },
-      { name: "權益報酬率 (ROE)", num: "本期淨利", den: "平均權益總額" }
-    ];
-
-    let chapters = [...defaultChapters];
+    let currentSubjectKey = "acc";
+    let chapters = [];
     let currentChapId = "c1";
     let saveTimeout = null;
     let isCloudLoaded = false;
     let lastCellContext = null;
 
-    // ✨ 點擊事件全局委派：確保點擊「刪除標籤」時 100% 瞬間精準移除公式框！
+    /* 全局刪除標籤委派 */
     document.addEventListener('click', function(e) {
       if (e.target && e.target.classList.contains('formula-del-tag')) {
         e.preventDefault();
@@ -254,6 +336,26 @@
         }
       }
     });
+
+    function goHome() {
+      saveData();
+      document.getElementById("appPage").style.display = "none";
+      document.getElementById("homePage").style.display = "flex";
+    }
+
+    function enterSubject(subjectKey) {
+      currentSubjectKey = subjectKey;
+      chapters = [...subjectData[subjectKey].chapters];
+      currentChapId = chapters[0].id;
+
+      document.getElementById("sidebarSubjectTitle").innerText = `📚 ${subjectData[subjectKey].name}選單`;
+      document.getElementById("modalHeaderTitle").innerText = `🔍 點擊帶入 ${subjectData[subjectKey].name} 速查資料`;
+
+      document.getElementById("homePage").style.display = "none";
+      document.getElementById("appPage").style.display = "flex";
+
+      initFirebaseData();
+    }
 
     async function initFirebaseData() {
       const syncStatus = document.getElementById("syncStatus");
@@ -272,12 +374,12 @@
       }
 
       try {
-        const docRef = window.doc(window.db, "notes", "my_accounting_notes");
+        const docRef = window.doc(window.db, "notes", `notes_${currentSubjectKey}`);
         const docSnap = await window.getDoc(docRef);
 
         if (docSnap.exists() && docSnap.data().chapters) {
           const cloudData = docSnap.data().chapters;
-          chapters = defaultChapters.map(chap => {
+          chapters = subjectData[currentSubjectKey].chapters.map(chap => {
             const match = cloudData.find(c => c.id === chap.id || c.title === chap.title);
             return match ? { ...chap, content: match.content || "" } : chap;
           });
@@ -314,7 +416,7 @@
         syncStatus.innerText = "⏳ 儲存中...";
         syncStatus.style.color = "#007aff";
         try {
-          await window.setDoc(window.doc(window.db, "notes", "my_accounting_notes"), { chapters });
+          await window.setDoc(window.doc(window.db, "notes", `notes_${currentSubjectKey}`), { chapters });
           syncStatus.innerText = "☁️ 已儲存至雲端";
           syncStatus.style.color = "#28a745";
         } catch (e) {
@@ -350,20 +452,16 @@
       if (chap) {
         const viewer = document.getElementById("noteViewer");
         viewer.innerHTML = chap.content || "";
-        document.getElementById("currentTitle").innerText = chap.title;
+        document.getElementById("currentTitle").innerText = `${subjectData[currentSubjectKey].name} - ${chap.title}`;
       }
       renderSidebar();
     }
 
-    // 🔥 清空頁面舊公式：解決壞公式死纏爛打的最強終極按鈕
     function purgeAllFormulas() {
       const viewer = document.getElementById("noteViewer");
       const boxes = viewer.querySelectorAll('.formula-box');
-      if (boxes.length === 0) {
-        alert("當前頁面沒有公式！");
-        return;
-      }
-      if (confirm(`確定要將當前頁面的全部 ${boxes.length} 個公式全數刪除嗎？`)) {
+      if (boxes.length === 0) return alert("當前頁面沒有公式或速查方塊！");
+      if (confirm(`確定要將當前頁面的全部 ${boxes.length} 個方塊全數刪除嗎？`)) {
         boxes.forEach(box => box.remove());
         debouncedSave();
       }
@@ -380,23 +478,22 @@
       return chapters.find(c => c.id === id);
     }
 
-    /* --- 清除格式功能 --- */
     function clearFormatting() {
       document.execCommand('removeFormat', false, null);
       document.execCommand('hiliteColor', false, 'transparent');
       debouncedSave();
     }
 
-    /* --- 表格核心控制 --- */
+    /* 表格功能 */
     function insertDefaultTable() {
       const html = `
         <table class="acc-table">
           <thead>
-            <tr><th>項目</th><th>永續盤存制</th><th>定期盤存制</th></tr>
+            <tr><th>項目/考點</th><th>說明內容 A</th><th>說明內容 B</th></tr>
           </thead>
           <tbody>
-            <tr><td>平時進貨</td><td>存貨</td><td>進貨</td></tr>
-            <tr><td>期末結轉</td><td>不需調整</td><td>盤點並結轉成本</td></tr>
+            <tr><td>概念 1</td><td>對應細節 1</td><td>對應細節 2</td></tr>
+            <tr><td>概念 2</td><td>對應細節 3</td><td>對應細節 4</td></tr>
           </tbody>
         </table><p><br></p>
       `;
@@ -424,7 +521,7 @@
 
     function addRow() {
       const { tbl, cell } = getActiveTableAndCell();
-      if (!tbl) return alert("請先將游標點擊在表格格子內部！");
+      if (!tbl) return alert("請先將游標點擊在表格內部！");
       const colCount = tbl.rows[0].cells.length;
       const rowIndex = cell ? cell.parentElement.rowIndex + 1 : tbl.rows.length;
       const newRow = tbl.insertRow(rowIndex);
@@ -437,7 +534,7 @@
 
     function addCol() {
       const { tbl, cell } = getActiveTableAndCell();
-      if (!tbl) return alert("請先將游標點擊在表格格子內部！");
+      if (!tbl) return alert("請先將游標點擊在表格內部！");
       const cellIndex = cell ? cell.cellIndex + 1 : tbl.rows[0].cells.length;
       for (let i = 0; i < tbl.rows.length; i++) {
         let row = tbl.rows[i];
@@ -489,7 +586,6 @@
       }
     }
 
-    /* 右鍵選單 */
     function handleRightClick(e) {
       let target = e.target;
       while (target && target.id !== 'noteViewer') {
@@ -510,7 +606,7 @@
       document.getElementById('ctxMenu').style.display = 'none';
     }
 
-    /* --- 公式彈窗 --- */
+    /* 速查與公式 Modal */
     function openFormulaModal() {
       document.getElementById('formulaModal').classList.add('show');
       document.getElementById('formulaSearchInput').value = '';
@@ -526,15 +622,16 @@
       const listContainer = document.getElementById('formulaList');
       listContainer.innerHTML = '';
 
-      const filtered = accountingFormulas.filter(f => f.name.toLowerCase().includes(query));
-      
+      const currentList = subjectData[currentSubjectKey].formulas || [];
+      const filtered = currentList.filter(f => f.name.toLowerCase().includes(query) || (f.customText && f.customText.toLowerCase().includes(query)));
+
       filtered.forEach(f => {
         const item = document.createElement('div');
         item.className = 'formula-item';
         
         let formulaPreview = '';
         if (f.customText) {
-          formulaPreview = `<span><b>${f.name}</b> = ${f.customText}</span>`;
+          formulaPreview = `<span><b>${f.name}</b>：${f.customText}</span>`;
         } else {
           formulaPreview = `
             <div style="display:flex; align-items:center;">
@@ -550,7 +647,6 @@
       });
     }
 
-    /* ✨ 插入帶有 contenteditable="false" 的紅色實心刪除標籤 */
     function insertFormulaToNote(f) {
       let html = '';
       const delTagHtml = `<span class="formula-del-tag" contenteditable="false">刪除</span>`;
@@ -558,7 +654,7 @@
       if (f.customText) {
         html = `
           <span class="formula-box" contenteditable="false">
-            <b>${f.name}</b>&nbsp;=&nbsp;${f.customText}
+            <b>${f.name}</b>：${f.customText}
             ${delTagHtml}
           </span>&nbsp;
         `;
@@ -617,7 +713,7 @@
       box.innerHTML = `
         <div class="box-quick-del" onclick="removeTreeBox('${boxId}')">✕</div>
         <div class="box-drag-handle"></div>
-        <div class="box-content" contenteditable="true">輸入註解...</div>
+        <div class="box-content" contenteditable="true">輸入重點/註解...</div>
       `;
       wrapper.appendChild(box);
       debouncedSave();
@@ -633,7 +729,7 @@
       const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(chapters));
       const downloadAnchor = document.createElement('a');
       downloadAnchor.setAttribute("href", dataStr);
-      downloadAnchor.setAttribute("download", `accounting_notes_backup.json`);
+      downloadAnchor.setAttribute("download", `${currentSubjectKey}_notes_backup.json`);
       document.body.appendChild(downloadAnchor);
       downloadAnchor.click();
       downloadAnchor.remove();
