@@ -38,6 +38,7 @@
     .tool-btn:hover { background: #e9ecef; }
     .tool-btn.btn-primary { background: #007aff; color: white; border-color: #007aff; font-weight: 600; }
     .tool-btn.btn-hl { background: #fff9db; border-color: #fcc419; color: #856404; font-weight: 600; }
+    .tool-btn.btn-clear { background: #f1f3f5; border-color: #adb5bd; color: #495057; font-weight: 600; }
     .tool-btn.btn-tbl { background: #e7f5ff; border-color: #74c0fc; color: #1864ab; font-weight: 600; }
     .tool-btn.btn-formula { background: #f3d9fa; border-color: #e599f7; color: #862e9c; font-weight: 600; }
     .tool-btn.btn-danger { background: #fff5f5; border-color: #ff8787; color: #e03131; }
@@ -121,6 +122,7 @@
 
         <button class="tool-btn" style="font-weight:900;" onmousedown="event.preventDefault(); toggleBold();">B 粗體</button>
         <button class="tool-btn btn-hl" onmousedown="event.preventDefault(); applyHighlight('#ffec99');">🖍️ 螢光筆</button>
+        <button class="tool-btn btn-clear" onmousedown="event.preventDefault(); clearFormatting();">🧹 清除格式</button>
         <button class="tool-btn btn-formula" onclick="openFormulaModal()">🔍 搜尋會計公式</button>
         <button class="tool-btn btn-tbl" onclick="insertDefaultTable()">📊 插入預設表格</button>
         <button class="tool-btn" onclick="addRow()">➕ 列</button>
@@ -329,6 +331,13 @@
 
     function getChapObj(id) {
       return chapters.find(c => c.id === id);
+    }
+
+    /* --- 清除格式功能 --- */
+    function clearFormatting() {
+      document.execCommand('removeFormat', false, null);
+      document.execCommand('hiliteColor', false, 'transparent');
+      debouncedSave();
     }
 
     /* --- 表格核心控制 --- */
