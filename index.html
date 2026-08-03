@@ -14,20 +14,12 @@
 
     #sidebar { width: 290px; background: #ffffff; border-right: 1px solid #e0e0e0; display: flex; flex-direction: column; z-index: 200; transition: transform 0.25s ease; flex-shrink: 0; height: 100vh; }
     .sidebar-header { padding: 14px 16px; font-weight: bold; font-size: 1rem; border-bottom: 1px solid #eee; background: #fcfcfc; color: #111; display: flex; justify-content: space-between; align-items: center; }
-    .add-btn-group { padding: 8px 10px; display: flex; gap: 6px; border-bottom: 1px solid #eee; }
-    
-    .btn-action { flex: 1; padding: 8px 10px; font-size: 0.8rem; background: #007aff; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; text-align: center; }
-    .btn-action:hover { background: #0056b3; }
     
     .chapter-list { overflow-y: auto; flex: 1; padding: 8px; }
-    .chap-box { margin-bottom: 8px; }
-    .chap-header { display: flex; align-items: center; justify-content: space-between; font-weight: 700; font-size: 0.88rem; color: #222; padding: 8px 10px; background: #e9ecef; border-radius: 6px; }
-    .sec-item { display: flex; align-items: center; justify-content: space-between; padding: 8px 10px; border-radius: 4px; cursor: pointer; font-size: 0.85rem; margin: 4px 0 2px 10px; background: #fff; border: 1px solid #e0e0e0; }
-    .sec-item.active { background: #007aff; color: white; font-weight: 600; border-color: #007aff; }
+    .chap-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border-radius: 6px; cursor: pointer; font-size: 0.88rem; margin-bottom: 6px; background: #fff; border: 1px solid #e0e0e0; font-weight: 500; }
+    .chap-item.active { background: #007aff; color: white; font-weight: 700; border-color: #007aff; }
 
-    .ctrl-btns { display: flex; gap: 2px; align-items: center; }
     .micro-btn { background: none; border: none; font-size: 0.75rem; color: #666; cursor: pointer; padding: 2px 6px; border-radius: 3px; }
-    .micro-btn:hover { background: rgba(0,0,0,0.1); color: #000; }
 
     #main { flex: 1; display: flex; flex-direction: column; height: 100vh; min-width: 0; overflow: hidden; background: #fff; position: relative; }
     .sticky-header-container { width: 100%; background: #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.06); z-index: 100; flex-shrink: 0; }
@@ -35,20 +27,18 @@
     .top-bar { padding: 8px 12px; border-bottom: 1px solid #e0e0e0; display: flex; align-items: center; justify-content: space-between; background: #fafafa; gap: 8px; }
     .top-bar-left { display: flex; align-items: center; gap: 8px; min-width: 0; flex: 1; }
     .menu-toggle { display: none; font-size: 1.2rem; background: none; border: none; cursor: pointer; padding: 4px 6px; border-radius: 4px; flex-shrink: 0; }
-    .doc-title { font-size: 0.92rem; font-weight: 700; color: #111; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; }
+    .doc-title { font-size: 0.95rem; font-weight: 700; color: #111; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; }
 
     .sync-status { font-size: 0.75rem; color: #007aff; font-weight: bold; margin-right: 8px; }
 
-    .lock-btn { display: inline-flex; align-items: center; gap: 4px; padding: 5px 10px; background: #e9ecef; border: 1px solid #ced4da; border-radius: 20px; font-size: 0.82rem; font-weight: 600; cursor: pointer; user-select: none; flex-shrink: 0; }
-    .lock-btn.is-read { background: #fff3bf; border-color: #fcc419; color: #856404; }
-
-    .toolbar { display: flex; gap: 8px; padding: 8px 12px; background: #f8f9fa; border-bottom: 1px solid #e0e0e0; align-items: center; overflow-x: auto; white-space: nowrap; }
+    .toolbar { display: flex; gap: 6px; padding: 8px 12px; background: #f8f9fa; border-bottom: 1px solid #e0e0e0; align-items: center; overflow-x: auto; white-space: nowrap; }
     .toolbar::-webkit-scrollbar { display: none; }
     
     .tool-btn { padding: 6px 10px; background: #fff; border: 1px solid #ced4da; border-radius: 6px; font-size: 0.8rem; cursor: pointer; font-weight: 500; display: inline-flex; align-items: center; gap: 4px; flex-shrink: 0; }
     .tool-btn:hover { background: #e9ecef; }
     .tool-btn.btn-primary { background: #007aff; color: white; border-color: #007aff; font-weight: 600; }
     .tool-btn.btn-hl { background: #fff9db; border-color: #fcc419; color: #856404; font-weight: 600; }
+    .tool-btn.btn-tbl { background: #e7f5ff; border-color: #74c0fc; color: #1864ab; font-weight: 600; }
 
     .color-group { display: inline-flex; align-items: center; gap: 6px; padding-right: 4px; flex-shrink: 0; }
     .color-btn { width: 22px; height: 22px; border-radius: 50%; border: 2px solid #ccc; cursor: pointer; flex-shrink: 0; }
@@ -58,6 +48,17 @@
 
     .editor-wrapper { flex: 1; padding: 20px; overflow-y: auto; position: relative; height: 100%; }
     #noteViewer { min-height: 100%; font-size: 0.98rem; line-height: 1.8; color: #2b2b2b; outline: none; padding-bottom: 250px; position: relative; z-index: 1; }
+
+    /* 分數排版樣式 */
+    .frac-wrap { display: inline-flex; flex-direction: column; vertical-align: middle; text-align: center; font-size: 0.9em; padding: 0 4px; line-height: 1.1; margin: 0 2px; }
+    .frac-num { border-bottom: 1.5px solid #333; padding: 1px 2px; }
+    .frac-den { padding: 1px 2px; }
+
+    /* 會計比較表格樣式 */
+    .acc-table { border-collapse: collapse; width: 100%; margin: 12px 0; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-radius: 6px; overflow: hidden; }
+    .acc-table th, .acc-table td { border: 1px solid #dee2e6; padding: 8px 12px; text-align: left; font-size: 0.9rem; }
+    .acc-table th { background: #f1f3f5; font-weight: 700; color: #495057; }
+    .acc-table tr:hover { background: #f8f9fa; }
 
     .tree-box { position: absolute; min-width: 120px; min-height: 50px; background: #fff; border: 2px solid #007aff; border-radius: 8px; font-size: 0.85rem; z-index: 10; box-shadow: 0 3px 8px rgba(0,0,0,0.12); touch-action: none; resize: both; overflow: auto; display: inline-block; }
     .box-drag-handle { background: #f0f4f8; height: 18px; cursor: move; border-top-left-radius: 6px; border-top-right-radius: 6px; border-bottom: 1px solid #e0e0e0; }
@@ -77,12 +78,8 @@
 
   <div id="sidebar">
     <div class="sidebar-header">
-      <span>📚 會計學全功能筆記</span>
+      <span>📚 會計學章節選單</span>
       <button class="micro-btn" style="font-size:1rem;" onclick="closeSidebar()">✕</button>
-    </div>
-    <div class="add-btn-group">
-      <button class="btn-action" onclick="addNewChapter()">➕ 新增章節</button>
-      <button class="btn-action" onclick="addNewSection()">➕ 新增小節</button>
     </div>
     <div class="chapter-list" id="chapterList"></div>
   </div>
@@ -95,12 +92,7 @@
           <div class="doc-title" id="currentTitle">筆記</div>
         </div>
         
-        <span class="sync-status" id="syncStatus">⏳ 連線至 Firebase...</span>
-
-        <button class="lock-btn" id="lockToggleBtn" onclick="toggleReadMode()">
-          <span id="lockIcon">🔓</span>
-          <span id="lockText">編輯模式</span>
-        </button>
+        <span class="sync-status" id="syncStatus">⏳ 連線中...</span>
       </div>
 
       <div class="toolbar">
@@ -112,10 +104,15 @@
 
         <button class="tool-btn" style="font-weight:900;" onmousedown="event.preventDefault(); toggleBold();">B 粗體</button>
         <button class="tool-btn btn-hl" onmousedown="event.preventDefault(); applyHighlight('#ffec99');">🖍️ 螢光筆</button>
-        <button class="tool-btn" onmousedown="event.preventDefault(); removeHighlight();">🧹 清除</button>
-        <button class="tool-btn btn-primary" onclick="addFreeBox()">🔳 新增文字框</button>
-        <button class="tool-btn" onclick="exportData()">📥 匯出備份</button>
-        <button class="tool-btn" onclick="importData()">📤 載入備份</button>
+        <button class="tool-btn" onmousedown="event.preventDefault(); insertFraction();">½ 分數</button>
+        <button class="tool-btn btn-tbl" onclick="insertTable()">📊 新增表格</button>
+        <button class="tool-btn" onclick="addRow()">➕ 列</button>
+        <button class="tool-btn" onclick="addCol()">➕ 欄</button>
+        <button class="tool-btn" onclick="delRow()">➖ 列</button>
+        <button class="tool-btn" onclick="delCol()">➖ 欄</button>
+        <button class="tool-btn btn-primary" onclick="addFreeBox()">🔳 文字框</button>
+        <button class="tool-btn" onclick="exportData()">📥 備份</button>
+        <button class="tool-btn" onclick="importData()">📤 還原</button>
         <input type="file" id="importInput" style="display:none;" onchange="handleFileSelect(event)">
       </div>
     </div>
@@ -125,10 +122,10 @@
     </div>
   </div>
 
-  <!-- Firebase 模組化載入 -->
+  <!-- Firebase SDK -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getFirestore, doc, getDoc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyBk5qBqzA7WCePRVRNn_8oRiWDLfKnV8Hc",
@@ -148,22 +145,36 @@
     window.getDoc = getDoc;
     window.setDoc = setDoc;
 
-    // 啟動資料庫
     initFirebaseData();
   </script>
 
   <script>
-    let chapters = [
-      { title: "會計基礎", sections: [{ id: "sec_1", title: "會計方程式", content: "會計基本恆等式：資產 = 負債 + 權益" }] }
+    // 預設 14 個固定會計大章節
+    const defaultChapters = [
+      { id: "c1", title: "第一章 會計基本觀念", content: "" },
+      { id: "c2", title: "第二章 現金與銀行調節表", content: "" },
+      { id: "c3", title: "第三章 應收款與客戶合約收入", content: "" },
+      { id: "c4", title: "第四章 買賣業會計與存貨", content: "" },
+      { id: "c5", title: "第五章 不動產廠房及設備", content: "" },
+      { id: "c6", title: "第六章 遞耗、無形、生物資產及投資性不動產", content: "" },
+      { id: "c7", title: "第七章 流動負債、負債準備及或有資產/負債", content: "" },
+      { id: "c8", title: "第八章 金融負債", content: "" },
+      { id: "c9", title: "第九章 權益(公司會計)", content: "" },
+      { id: "c10", title: "第十章 金融資產", content: "" },
+      { id: "c11", title: "第十一章 現金流量表", content: "" },
+      { id: "c12", title: "第十二章 財務報表分析與綜合損益分析", content: "" },
+      { id: "c13", title: "第十三章 錯誤更正", content: "" },
+      { id: "c14", title: "其他", content: "" }
     ];
-    let currentSecId = "sec_1";
+
+    let chapters = [...defaultChapters];
+    let currentChapId = "c1";
     let saveTimeout = null;
     let isCloudLoaded = false;
 
     async function initFirebaseData() {
       const syncStatus = document.getElementById("syncStatus");
       
-      // 等待 Firebase 變數準備好
       let checks = 0;
       while (!window.db && checks < 20) {
         await new Promise(r => setTimeout(r, 200));
@@ -173,7 +184,8 @@
       if (!window.db) {
         syncStatus.innerText = "⚠️ 本地模式";
         syncStatus.style.color = "#dc3545";
-        loadSec(currentSecId);
+        renderSidebar();
+        loadChap(currentChapId);
         return;
       }
 
@@ -181,10 +193,14 @@
         const docRef = window.doc(window.db, "notes", "my_accounting_notes");
         const docSnap = await window.getDoc(docRef);
 
-        if (docSnap.exists()) {
-          chapters = docSnap.data().chapters;
+        if (docSnap.exists() && docSnap.data().chapters) {
+          const cloudData = docSnap.data().chapters;
+          // 將雲端內容寫入預設章節架構中
+          chapters = defaultChapters.map(chap => {
+            const match = cloudData.find(c => c.id === chap.id || c.title === chap.title);
+            return match ? { ...chap, content: match.content || "" } : chap;
+          });
         } else {
-          // 第一次建立雲端檔案
           await window.setDoc(docRef, { chapters });
         }
         
@@ -194,23 +210,23 @@
 
       } catch (e) {
         console.error("雲端讀取失敗:", e);
-        syncStatus.innerText = "❌ 雲端同步失敗";
+        syncStatus.innerText = "❌ 同步失敗";
         syncStatus.style.color = "#dc3545";
       }
 
       renderSidebar();
-      loadSec(currentSecId);
+      loadChap(currentChapId);
     }
 
     function debouncedSave() {
-      if (!isCloudLoaded) return; // 沒讀取完之前不儲存，避免蓋掉雲端資料
+      if (!isCloudLoaded) return;
       clearTimeout(saveTimeout);
       saveTimeout = setTimeout(() => { saveData(); }, 600);
     }
 
     async function saveData() {
-      let sec = getSecObj(currentSecId);
-      if (sec) sec.content = document.getElementById("noteViewer").innerHTML;
+      let chap = getChapObj(currentChapId);
+      if (chap) chap.content = document.getElementById("noteViewer").innerHTML;
 
       if (window.db && isCloudLoaded) {
         const syncStatus = document.getElementById("syncStatus");
@@ -230,77 +246,121 @@
     function renderSidebar() {
       const list = document.getElementById("chapterList");
       list.innerHTML = "";
-      chapters.forEach((chap, cIdx) => {
-        const cBox = document.createElement("div");
-        cBox.className = "chap-box";
-        cBox.innerHTML = `<div class="chap-header"><span>${chap.title}</span></div>`;
-
-        chap.sections.forEach((sec) => {
-          const item = document.createElement("div");
-          item.className = `sec-item ${sec.id === currentSecId ? 'active' : ''}`;
-          item.onclick = () => { switchSec(sec.id); closeSidebar(); };
-          item.innerHTML = `<span>${sec.title}</span>`;
-          cBox.appendChild(item);
-        });
-        list.appendChild(cBox);
+      chapters.forEach((chap) => {
+        const item = document.createElement("div");
+        item.className = `chap-item ${chap.id === currentChapId ? 'active' : ''}`;
+        item.onclick = () => { switchChap(chap.id); closeSidebar(); };
+        item.innerHTML = `<span>${chap.title}</span>`;
+        list.appendChild(item);
       });
     }
 
-    function switchSec(id) {
-      // 切換前先把舊頁面儲存
-      let sec = getSecObj(currentSecId);
-      if (sec) sec.content = document.getElementById("noteViewer").innerHTML;
+    function switchChap(id) {
+      let chap = getChapObj(currentChapId);
+      if (chap) chap.content = document.getElementById("noteViewer").innerHTML;
       
-      currentSecId = id;
-      loadSec(id);
+      currentChapId = id;
+      loadChap(id);
       saveData();
     }
 
-    function loadSec(id) {
-      let sec = getSecObj(id);
-      if (sec) {
-        document.getElementById("noteViewer").innerHTML = sec.content || "";
-        refreshCurrentTitle();
+    function loadChap(id) {
+      let chap = getChapObj(id);
+      if (chap) {
+        document.getElementById("noteViewer").innerHTML = chap.content || "";
+        document.getElementById("currentTitle").innerText = chap.title;
       }
       renderSidebar();
     }
 
-    function getSecObj(id) {
-      for (let c of chapters) {
-        for (let s of c.sections) if (s.id === id) return s;
+    function getChapObj(id) {
+      return chapters.find(c => c.id === id);
+    }
+
+    /* --- 表格管理邏輯 --- */
+    function insertTable() {
+      const html = `
+        <table class="acc-table">
+          <thead>
+            <tr><th>項目</th><th>永續盤存制</th><th>定期盤存制</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>平時進貨</td><td>存貨</td><td>進貨</td></tr>
+            <tr><td>期末結轉</td><td>不需調整</td><td>盤點並結轉成本</td></tr>
+          </tbody>
+        </table><p><br></p>
+      `;
+      document.execCommand('insertHTML', false, html);
+      debouncedSave();
+    }
+
+    function getSelectedTable() {
+      const sel = window.getSelection();
+      if (!sel.rangeCount) return null;
+      let node = sel.getRangeAt(0).commonAncestorContainer;
+      while (node && node.nodeName !== 'TABLE' && node.id !== 'noteViewer') {
+        node = node.parentNode;
       }
-      return null;
+      return node && node.nodeName === 'TABLE' ? node : null;
     }
 
-    function refreshCurrentTitle() {
-      chapters.forEach((c) => {
-        c.sections.forEach((s) => {
-          if (s.id === currentSecId) {
-            document.getElementById("currentTitle").innerText = `${c.title} - ${s.title}`;
-          }
-        });
-      });
+    function addRow() {
+      const tbl = getSelectedTable();
+      if (!tbl) return alert("請先將光標點擊在表格內部！");
+      const cols = tbl.rows[0].cells.length;
+      const newRow = tbl.getElementsByTagName('tbody')[0].insertRow();
+      for (let i = 0; i < cols; i++) {
+        let cell = newRow.insertCell(i);
+        cell.innerHTML = "內容";
+      }
+      debouncedSave();
     }
 
-    function addNewChapter() {
-      const name = prompt("請輸入新章節名稱：");
-      if (name) {
-        const newSecId = "sec_" + Date.now();
-        chapters.push({
-          title: name,
-          sections: [{ id: newSecId, title: "小節 1", content: "請輸入筆記內容..." }]
-        });
-        switchSec(newSecId);
+    function addCol() {
+      const tbl = getSelectedTable();
+      if (!tbl) return alert("請先將光標點擊在表格內部！");
+      for (let i = 0; i < tbl.rows.length; i++) {
+        let cell = tbl.rows[i].tagName === 'THEAD' ? document.createElement('th') : tbl.rows[i].insertCell(-1);
+        if (i === 0 && tbl.querySelector('thead')) {
+          cell = document.createElement('th');
+          cell.innerHTML = "標題";
+          tbl.querySelector('thead tr').appendChild(cell);
+        } else {
+          cell.innerHTML = "內容";
+        }
+      }
+      debouncedSave();
+    }
+
+    function delRow() {
+      const tbl = getSelectedTable();
+      if (!tbl) return alert("請先將光標點擊在表格內部！");
+      if (tbl.rows.length > 1) {
+        tbl.deleteRow(-1);
+        debouncedSave();
       }
     }
 
-    function addNewSection() {
-      if (chapters.length === 0) return alert("請先建立章節！");
-      const name = prompt("請輸入新小節名稱：");
-      if (name) {
-        const newSecId = "sec_" + Date.now();
-        chapters[0].sections.push({ id: newSecId, title: name, content: "請輸入筆記內容..." });
-        switchSec(newSecId);
+    function delCol() {
+      const tbl = getSelectedTable();
+      if (!tbl) return alert("請先將光標點擊在表格內部！");
+      const colCount = tbl.rows[0].cells.length;
+      if (colCount > 1) {
+        for (let i = 0; i < tbl.rows.length; i++) {
+          tbl.rows[i].deleteCell(-1);
+        }
+        debouncedSave();
+      }
+    }
+
+    /* --- 公式分數與文字排版 --- */
+    function insertFraction() {
+      const num = prompt("請輸入分子：", "分子");
+      const den = prompt("請輸入分母：", "分母");
+      if (num !== null && den !== null) {
+        const html = `<span class="frac-wrap" contenteditable="false"><span class="frac-num" contenteditable="true">${num}</span><span class="frac-den" contenteditable="true">${den}</span></span>&nbsp;`;
+        document.execCommand('insertHTML', false, html);
+        debouncedSave();
       }
     }
 
@@ -316,11 +376,6 @@
 
     function applyHighlight(bgColor) {
       document.execCommand('hiliteColor', false, bgColor);
-      debouncedSave();
-    }
-
-    function removeHighlight() {
-      document.execCommand('removeFormat', false, null);
       debouncedSave();
     }
 
@@ -346,7 +401,7 @@
       box.innerHTML = `
         <div class="box-quick-del" onclick="removeTreeBox('${boxId}')">✕</div>
         <div class="box-drag-handle"></div>
-        <div class="box-content" contenteditable="true">輸入內容...</div>
+        <div class="box-content" contenteditable="true">輸入註解...</div>
       `;
       wrapper.appendChild(box);
       debouncedSave();
@@ -383,6 +438,7 @@
             chapters = imported;
             saveData();
             renderSidebar();
+            loadChap(currentChapId);
             alert("備份資料載入成功！");
           }
         } catch(err) {
