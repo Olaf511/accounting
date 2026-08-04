@@ -47,7 +47,6 @@
     .top-bar-left { display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1; }
     .menu-toggle { font-size: 1.3rem; background: #fff; border: 1px solid #ced4da; cursor: pointer; padding: 4px 8px; border-radius: 6px; flex-shrink: 0; line-height: 1; }
     
-    /* 兩行式標題結構 */
     .title-box { display: flex; flex-direction: column; min-width: 0; flex: 1; }
     .sub-title-text { font-size: 0.75rem; color: #007aff; font-weight: bold; line-height: 1.1; }
     .main-title-text { font-size: 0.95rem; font-weight: 800; color: #111; line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -66,6 +65,10 @@
     .tool-btn.btn-photo { background: #e6fcf5; border-color: #63e6be; color: #0ca678; font-weight: 700; }
     .tool-btn.btn-draw { background: #f3d9fa; border-color: #e599f7; color: #862e9c; font-weight: 700; }
     .tool-btn.btn-danger { background: #fff5f5; border-color: #ff8787; color: #e03131; }
+
+    /* 鎖頭圖示按鈕 */
+    .lock-btn { font-size: 1.1rem; padding: 4px 8px; border-radius: 6px; border: 1px solid #ced4da; background: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .lock-btn.locked { background: #ffe3e3; border-color: #ffa8a8; }
 
     .color-group { display: inline-flex; align-items: center; gap: 6px; padding-right: 4px; flex-shrink: 0; }
     .color-btn { width: 22px; height: 22px; border-radius: 50%; border: 2px solid #ccc; cursor: pointer; flex-shrink: 0; }
@@ -87,11 +90,31 @@
     #ctxMenu div:hover { background: #f1f3f5; color: #007aff; }
 
     /* 自由文字框 / 照片 / 手寫框 萬能容器 */
-    .tree-box { position: absolute; min-width: 100px; min-height: 50px; background: #fff; border: 2px solid #007aff; border-radius: 8px; font-size: 0.85rem; z-index: 10; box-shadow: 0 3px 8px rgba(0,0,0,0.12); touch-action: none; resize: both; overflow: hidden; display: inline-block; }
+    .tree-box { position: absolute; min-width: 100px; min-height: 50px; background: #fff; border: 2px solid #007aff; border-radius: 8px; font-size: 0.85rem; z-index: 10; box-shadow: 0 3px 8px rgba(0,0,0,0.12); touch-action: none; resize: both; overflow: visible; display: inline-block; }
     .box-drag-handle { background: #f0f4f8; height: 20px; cursor: move; border-top-left-radius: 6px; border-top-right-radius: 6px; border-bottom: 1px solid #e0e0e0; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #888; }
-    .box-quick-del { position: absolute; top: -6px; right: -6px; width: 22px; height: 22px; background: #ff3b30; color: white; border-radius: 50%; font-size: 13px; font-weight: bold; line-height: 22px; text-align: center; cursor: pointer; z-index: 30; border: 1.5px solid #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+    .box-quick-del { position: absolute; top: -8px; right: -8px; width: 22px; height: 22px; background: #ff3b30; color: white; border-radius: 50%; font-size: 13px; font-weight: bold; line-height: 22px; text-align: center; cursor: pointer; z-index: 30; border: 1.5px solid #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
     .box-content { padding: 6px 10px; outline: none; cursor: text; min-height: 30px; }
-    .box-img-content { width: 100%; height: calc(100% - 20px); object-fit: contain; display: block; }
+    .box-img-content { width: 100%; height: calc(100% - 20px); object-fit: contain; display: block; border-bottom-left-radius: 6px; border-bottom-right-radius: 6px; }
+
+    /* 四向連接點 */
+    .conn-dot { position: absolute; width: 12px; height: 12px; background: #007aff; border: 2px solid #fff; border-radius: 50%; z-index: 25; cursor: crosshair; box-shadow: 0 0 3px rgba(0,0,0,0.3); transition: transform 0.15s; }
+    .conn-dot:hover { transform: scale(1.4); background: #ff9500; }
+    .conn-dot.top { top: -6px; left: 50%; transform: translateX(-50%); }
+    .conn-dot.bottom { bottom: -6px; left: 50%; transform: translateX(-50%); }
+    .conn-dot.left { left: -6px; top: 50%; transform: translateY(-50%); }
+    .conn-dot.right { right: -6px; top: 50%; transform: translateY(-50%); }
+
+    /* SVG 繪圖層（箭頭連線） */
+    #svgLayer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5; }
+    .arrow-line { stroke: #007aff; stroke-width: 2.5; marker-end: url(#arrowHead); pointer-events: stroke; cursor: pointer; }
+    .arrow-line:hover { stroke: #ff3b30; stroke-width: 4; }
+
+    /* 鎖定模式下的控制隱藏 */
+    body.is-locked .tree-box { border-color: #adb5bd; }
+    body.is-locked .box-drag-handle, 
+    body.is-locked .box-quick-del, 
+    body.is-locked .conn-dot { display: none !important; }
+    body.is-locked .box-content { cursor: default; }
 
     /* 全螢幕手寫 Modal */
     #drawModal { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #fff; z-index: 2000; display: none; flex-direction: column; }
@@ -155,7 +178,6 @@
         <button class="micro-btn" style="font-size:1rem;" onclick="closeSidebar()">✕</button>
       </div>
       
-      <!-- 🏠 首頁按鈕移至側邊欄裡面 -->
       <div class="sidebar-home-btn" onclick="goHome()">🏠 返回科目首頁</div>
 
       <div class="chapter-list" id="chapterList"></div>
@@ -166,17 +188,19 @@
         <div class="top-bar">
           <div class="top-bar-left">
             <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
-            
-            <!-- 兩行式標題區域 -->
             <div class="title-box">
               <span class="sub-title-text" id="subTitle">會計學</span>
               <span class="main-title-text" id="mainTitle">第一章 會計基本觀念</span>
             </div>
           </div>
-          <span class="sync-status" id="syncStatus">⏳ 連線中...</span>
+          
+          <div style="display:flex; align-items:center; gap:8px;">
+            <button class="lock-btn" id="lockToggleBtn" onclick="toggleLockMode()" title="切換鎖定/編輯模式">🔓</button>
+            <span class="sync-status" id="syncStatus">⏳ 連線中...</span>
+          </div>
         </div>
 
-        <div class="toolbar">
+        <div class="toolbar" id="mainToolbar">
           <div class="color-group">
             <div class="color-btn color-black" title="黑色" onmousedown="event.preventDefault(); applyTextColor('#000000');"></div>
             <div class="color-btn color-red" title="紅色" onmousedown="event.preventDefault(); applyTextColor('#e63946');"></div>
@@ -187,11 +211,9 @@
           <button class="tool-btn btn-hl" onmousedown="event.preventDefault(); applyHighlight('#ffec99');">🖍️ 螢光筆</button>
           <button class="tool-btn btn-clear" onmousedown="event.preventDefault(); clearFormatting();">🧹 清除格式</button>
           
-          <!-- 📷 新增照片 (拍照 / 上傳) -->
           <button class="tool-btn btn-photo" onclick="triggerCameraInput()">📷 拍照/照片</button>
           <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display:none;" onchange="handleImageUpload(event)">
 
-          <!-- ✍️ 全螢幕手寫 -->
           <button class="tool-btn btn-draw" onclick="openDrawModal()">✍️ 手寫</button>
 
           <button class="tool-btn btn-tbl" onclick="insertDefaultTable()">📊 預設表格</button>
@@ -206,6 +228,15 @@
       </div>
 
       <div class="editor-wrapper" id="canvasWrapper">
+        <!-- SVG 連線層 -->
+        <svg id="svgLayer">
+          <defs>
+            <marker id="arrowHead" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="#007aff" />
+            </marker>
+          </defs>
+        </svg>
+
         <div id="noteViewer" contenteditable="true" oninput="debouncedSave()" oncontextmenu="handleRightClick(event)"></div>
       </div>
     </div>
@@ -275,34 +306,34 @@
       acc: {
         name: "會計學",
         chapters: [
-          { id: "c1", title: "第一章 會計基本觀念", content: "" },
-          { id: "c2", title: "第二章 現金與銀行調節表", content: "" },
-          { id: "c3", title: "第三章 應收款與客戶合約收入", content: "" },
-          { id: "c4", title: "第四章 買賣業會計與存貨", content: "" },
-          { id: "c5", title: "第五章 不動產廠房及設備(含折舊)", content: "" },
-          { id: "c6", title: "第六章 遞耗、無形與生物資產", content: "" },
-          { id: "c7", title: "第七章 流動負債與負債準備", content: "" },
-          { id: "c8", title: "第八章 金融負債與公司債", content: "" },
-          { id: "c9", title: "第九章 權益(公司會計)", content: "" },
-          { id: "c10", title: "第十章 金融資產與投資", content: "" },
-          { id: "c11", title: "第十一章 現金流量表", content: "" },
-          { id: "c12", title: "第十二章 財務報表分析", content: "" },
-          { id: "c13", title: "第十三章 錯誤更正", content: "" }
+          { id: "c1", title: "第一章 會計基本觀念", content: "", lines: [] },
+          { id: "c2", title: "第二章 現金與銀行調節表", content: "", lines: [] },
+          { id: "c3", title: "第三章 應收款與客戶合約收入", content: "", lines: [] },
+          { id: "c4", title: "第四章 買賣業會計與存貨", content: "", lines: [] },
+          { id: "c5", title: "第五章 不動產廠房及設備(含折舊)", content: "", lines: [] },
+          { id: "c6", title: "第六章 遞耗、無形與生物資產", content: "", lines: [] },
+          { id: "c7", title: "第七章 流動負債與負債準備", content: "", lines: [] },
+          { id: "c8", title: "第八章 金融負債與公司債", content: "", lines: [] },
+          { id: "c9", title: "第九章 權益(公司會計)", content: "", lines: [] },
+          { id: "c10", title: "第十章 金融資產與投資", content: "", lines: [] },
+          { id: "c11", title: "第十一章 現金流量表", content: "", lines: [] },
+          { id: "c12", title: "第十二章 財務報表分析", content: "", lines: [] },
+          { id: "c13", title: "第十三章 錯誤更正", content: "", lines: [] }
         ]
       },
       law: {
         name: "會計審計法規",
         chapters: [
-          { id: "l1", title: "預算法", content: "" },
-          { id: "l2", title: "會計法", content: "" },
-          { id: "l3", title: "決算法", content: "" },
-          { id: "l4", title: "審計法", content: "" }
+          { id: "l1", title: "預算法", content: "", lines: [] },
+          { id: "l2", title: "會計法", content: "", lines: [] },
+          { id: "l3", title: "決算法", content: "", lines: [] },
+          { id: "l4", title: "審計法", content: "", lines: [] }
         ]
       },
       civ: {
         name: "公民",
         chapters: [
-          { id: "v1", title: "公民綜合筆記與重點整理", content: "" }
+          { id: "v1", title: "公民綜合筆記與重點整理", content: "", lines: [] }
         ]
       }
     };
@@ -314,6 +345,9 @@
     let isCloudLoaded = false;
     let lastCellContext = null;
 
+    let isLocked = false;
+    let activeLines = []; // 儲存箭頭連線資訊 [{ id, fromBox, fromPos, toBox, toPos }]
+
     function goHome() {
       saveData();
       closeSidebar();
@@ -323,7 +357,7 @@
 
     function enterSubject(subjectKey) {
       currentSubjectKey = subjectKey;
-      chapters = [...subjectData[subjectKey].chapters];
+      chapters = JSON.parse(JSON.stringify(subjectData[subjectKey].chapters));
       currentChapId = chapters[0].id;
 
       document.getElementById("sidebarSubjectTitle").innerText = `📚 ${subjectData[subjectKey].name}選單`;
@@ -332,6 +366,25 @@
       document.getElementById("appPage").style.display = "flex";
 
       initFirebaseData();
+    }
+
+    /* 🔒 切換鎖定/編輯模式 */
+    function toggleLockMode() {
+      isLocked = !isLocked;
+      const btn = document.getElementById("lockToggleBtn");
+      const noteViewer = document.getElementById("noteViewer");
+
+      if (isLocked) {
+        btn.innerText = "🔒";
+        btn.classList.add("locked");
+        document.body.classList.add("is-locked");
+        noteViewer.contentEditable = "false";
+      } else {
+        btn.innerText = "🔓";
+        btn.classList.remove("locked");
+        document.body.classList.remove("is-locked");
+        noteViewer.contentEditable = "true";
+      }
     }
 
     async function initFirebaseData() {
@@ -358,7 +411,7 @@
           const cloudData = docSnap.data().chapters;
           chapters = subjectData[currentSubjectKey].chapters.map(chap => {
             const match = cloudData.find(c => c.id === chap.id || c.title === chap.title);
-            return match ? { ...chap, content: match.content || "" } : chap;
+            return match ? { ...chap, content: match.content || "", lines: match.lines || [] } : chap;
           });
         } else {
           await window.setDoc(docRef, { chapters });
@@ -386,7 +439,10 @@
 
     async function saveData() {
       let chap = getChapObj(currentChapId);
-      if (chap) chap.content = document.getElementById("noteViewer").innerHTML;
+      if (chap) {
+        chap.content = document.getElementById("noteViewer").innerHTML;
+        chap.lines = activeLines;
+      }
 
       if (window.db && isCloudLoaded) {
         const syncStatus = document.getElementById("syncStatus");
@@ -417,7 +473,10 @@
 
     function switchChap(id) {
       let chap = getChapObj(currentChapId);
-      if (chap) chap.content = document.getElementById("noteViewer").innerHTML;
+      if (chap) {
+        chap.content = document.getElementById("noteViewer").innerHTML;
+        chap.lines = activeLines;
+      }
       
       currentChapId = id;
       loadChap(id);
@@ -429,11 +488,13 @@
       if (chap) {
         const viewer = document.getElementById("noteViewer");
         viewer.innerHTML = chap.content || "";
+        activeLines = chap.lines || [];
         
         document.getElementById("subTitle").innerText = subjectData[currentSubjectKey].name;
         document.getElementById("mainTitle").innerText = chap.title;
         
-        bindBoxEvents(); // 重新綁定拖曳與點擊
+        bindBoxEvents();
+        renderLines();
       }
       renderSidebar();
     }
@@ -441,6 +502,8 @@
     function resetCurrentChapter() {
       if (confirm(`確定要清空「${getChapObj(currentChapId).title}」的所有內容嗎？`)) {
         document.getElementById("noteViewer").innerHTML = "";
+        activeLines = [];
+        renderLines();
         saveData();
       }
     }
@@ -455,7 +518,7 @@
       debouncedSave();
     }
 
-    /* 📷 拍照 / 相片上傳與拖曳框處理 */
+    /* 📷 拍照 / 相片上傳 */
     function triggerCameraInput() {
       document.getElementById('cameraInput').click();
     }
@@ -469,10 +532,10 @@
         createMediaBox(evt.target.result, 'img');
       };
       reader.readAsDataURL(file);
-      e.target.value = ''; // 重置 input
+      e.target.value = '';
     }
 
-    /* 萬能拖曳框建立 (文字/圖片/手寫) */
+    /* 🔳 建立萬能文字/圖片框 (附帶四向連接點) */
     function createMediaBox(srcOrText, type = 'text') {
       const wrapper = document.getElementById('canvasWrapper');
       const boxId = "box_" + Date.now();
@@ -482,26 +545,30 @@
       box.style.left = '40px';
       box.style.top = (80 + wrapper.scrollTop) + 'px';
 
+      let inner = `
+        <div class="box-quick-del" onclick="removeTreeBox('${boxId}')">✕</div>
+        <div class="box-drag-handle">≡ 拖曳移動</div>
+        <div class="conn-dot top" data-pos="top"></div>
+        <div class="conn-dot bottom" data-pos="bottom"></div>
+        <div class="conn-dot left" data-pos="left"></div>
+        <div class="conn-dot right" data-pos="right"></div>
+      `;
+
       if (type === 'img') {
         box.style.width = '240px';
         box.style.height = '200px';
-        box.innerHTML = `
-          <div class="box-quick-del" onclick="removeTreeBox('${boxId}')">✕</div>
-          <div class="box-drag-handle">≡ 拖曳移動</div>
-          <img src="${srcOrText}" class="box-img-content">
-        `;
+        inner += `<img src="${srcOrText}" class="box-img-content">`;
       } else {
         box.style.width = '160px';
         box.style.height = '80px';
-        box.innerHTML = `
-          <div class="box-quick-del" onclick="removeTreeBox('${boxId}')">✕</div>
-          <div class="box-drag-handle">≡ 拖曳移動</div>
-          <div class="box-content" contenteditable="true">${srcOrText}</div>
-        `;
+        inner += `<div class="box-content" contenteditable="true">${srcOrText}</div>`;
       }
 
+      box.innerHTML = inner;
       wrapper.appendChild(box);
+
       initDragForBox(box);
+      initConnectorsForBox(box);
       debouncedSave();
     }
 
@@ -512,10 +579,12 @@
     function removeTreeBox(boxId) {
       const box = document.getElementById(boxId);
       if (box) box.remove();
+      activeLines = activeLines.filter(l => l.fromBox !== boxId && l.toBox !== boxId);
+      renderLines();
       debouncedSave();
     }
 
-    /* 拖曳邏輯 */
+    /* 拖曳框體邏輯 */
     function initDragForBox(box) {
       const handle = box.querySelector('.box-drag-handle');
       if (!handle) return;
@@ -524,6 +593,7 @@
       let startX, startY, startLeft, startTop;
 
       const startDrag = (e) => {
+        if (isLocked) return;
         isDragging = true;
         const clientX = e.touches ? e.touches[0].clientX : e.clientX;
         const clientY = e.touches ? e.touches[0].clientY : e.clientY;
@@ -548,6 +618,7 @@
 
         box.style.left = (startLeft + dx) + 'px';
         box.style.top = (startTop + dy) + 'px';
+        renderLines(); // 移動時實時更新箭頭連線
       };
 
       const stopDrag = () => {
@@ -565,9 +636,124 @@
       handle.addEventListener('touchstart', startDrag, { passive: false });
     }
 
+    /* 四向點點拉箭頭連線邏輯 */
+    function initConnectorsForBox(box) {
+      const dots = box.querySelectorAll('.conn-dot');
+      dots.forEach(dot => {
+        dot.addEventListener('mousedown', (e) => startLineDraw(e, box.id, dot.dataset.pos));
+        dot.addEventListener('touchstart', (e) => startLineDraw(e, box.id, dot.dataset.pos), { passive: false });
+      });
+    }
+
+    let tempLine = null;
+
+    function startLineDraw(e, fromBoxId, fromPos) {
+      if (isLocked) return;
+      e.stopPropagation();
+      if (e.cancelable) e.preventDefault();
+
+      const svg = document.getElementById('svgLayer');
+      const startPt = getDotCenter(fromBoxId, fromPos);
+
+      tempLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
+      tempLine.setAttribute("x1", startPt.x);
+      tempLine.setAttribute("y1", startPt.y);
+      tempLine.setAttribute("x2", startPt.x);
+      tempLine.setAttribute("y2", startPt.y);
+      tempLine.setAttribute("class", "arrow-line");
+      svg.appendChild(tempLine);
+
+      const moveHandler = (evt) => {
+        const clientX = evt.touches ? evt.touches[0].clientX : evt.clientX;
+        const clientY = evt.touches ? evt.touches[0].clientY : evt.clientY;
+        const rect = svg.getBoundingClientRect();
+        tempLine.setAttribute("x2", clientX - rect.left);
+        tempLine.setAttribute("y2", clientY - rect.top);
+      };
+
+      const upHandler = (evt) => {
+        document.removeEventListener('mousemove', moveHandler);
+        document.removeEventListener('mouseup', upHandler);
+        document.removeEventListener('touchmove', moveHandler);
+        document.removeEventListener('touchend', upHandler);
+
+        const clientX = evt.changedTouches ? evt.changedTouches[0].clientX : evt.clientX;
+        const clientY = evt.changedTouches ? evt.changedTouches[0].clientY : evt.clientY;
+
+        tempLine.remove();
+        tempLine = null;
+
+        // 判斷是否落在某個點點上
+        const targetElement = document.elementFromPoint(clientX, clientY);
+        if (targetElement && targetElement.classList.contains('conn-dot')) {
+          const toBox = targetElement.closest('.tree-box');
+          if (toBox && toBox.id !== fromBoxId) {
+            const toPos = targetElement.dataset.pos;
+            activeLines.push({
+              id: "line_" + Date.now(),
+              fromBox: fromBoxId,
+              fromPos: fromPos,
+              toBox: toBox.id,
+              toPos: toPos
+            });
+            renderLines();
+            debouncedSave();
+          }
+        }
+      };
+
+      document.addEventListener('mousemove', moveHandler);
+      document.addEventListener('mouseup', upHandler);
+      document.addEventListener('touchmove', moveHandler, { passive: false });
+      document.addEventListener('touchend', upHandler);
+    }
+
+    function getDotCenter(boxId, pos) {
+      const box = document.getElementById(boxId);
+      if (!box) return { x: 0, y: 0 };
+      const dot = box.querySelector(`.conn-dot.${pos}`);
+      if (!dot) return { x: 0, y: 0 };
+
+      const svgRect = document.getElementById('svgLayer').getBoundingClientRect();
+      const dotRect = dot.getBoundingClientRect();
+
+      return {
+        x: dotRect.left + dotRect.width / 2 - svgRect.left,
+        y: dotRect.top + dotRect.height / 2 - svgRect.top
+      };
+    }
+
+    function renderLines() {
+      const svg = document.getElementById('svgLayer');
+      // 清空舊線條（保留 marker 定義）
+      const lines = svg.querySelectorAll('line');
+      lines.forEach(l => l.remove());
+
+      activeLines.forEach(lineData => {
+        const p1 = getDotCenter(lineData.fromBox, lineData.fromPos);
+        const p2 = getDotCenter(lineData.toBox, lineData.toPos);
+
+        const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        line.setAttribute("x1", p1.x);
+        line.setAttribute("y1", p1.y);
+        line.setAttribute("x2", p2.x);
+        line.setAttribute("y2", p2.y);
+        line.setAttribute("class", "arrow-line");
+        line.onclick = () => {
+          if (!isLocked && confirm("是否刪除這條箭頭連線？")) {
+            activeLines = activeLines.filter(l => l.id !== lineData.id);
+            renderLines();
+            debouncedSave();
+          }
+        };
+        svg.appendChild(line);
+      });
+    }
+
     function bindBoxEvents() {
       document.querySelectorAll('.tree-box').forEach(box => {
         initDragForBox(box);
+        initConnectorsForBox(box);
       });
     }
 
@@ -577,6 +763,7 @@
     let isEraser = false;
 
     function openDrawModal() {
+      if (isLocked) return alert("請先點擊右上角鎖頭 🔓 解除鎖定！");
       const modal = document.getElementById('drawModal');
       modal.classList.add('show');
 
@@ -646,17 +833,10 @@
       canvas.ontouchend = stopDraw;
     }
 
-    function setEraser() {
-      isEraser = true;
-    }
-
-    function clearCanvas() {
-      isEraser = false;
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-    }
+    function setEraser() { isEraser = true; }
+    function clearCanvas() { isEraser = false; ctx.clearRect(0, 0, canvas.width, canvas.height); }
 
     function saveHandwriting() {
-      // 自動剪裁掉周圍的空白部分
       const dataUrl = canvas.toDataURL('image/png');
       createMediaBox(dataUrl, 'img');
       closeDrawModal();
@@ -766,6 +946,7 @@
     }
 
     function handleRightClick(e) {
+      if (isLocked) return;
       let target = e.target;
       while (target && target.id !== 'noteViewer') {
         if (target.tagName === 'TD' || target.tagName === 'TH') {
