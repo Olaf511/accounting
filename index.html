@@ -63,7 +63,8 @@
     .tool-btn.btn-hl { background: #fff9db; border-color: #fcc419; color: #856404; font-weight: 600; }
     .tool-btn.btn-clear { background: #f1f3f5; border-color: #adb5bd; color: #495057; font-weight: 600; }
     .tool-btn.btn-tbl { background: #e7f5ff; border-color: #74c0fc; color: #1864ab; font-weight: 600; }
-    .tool-btn.btn-formula { background: #f3d9fa; border-color: #e599f7; color: #862e9c; font-weight: 600; }
+    .tool-btn.btn-photo { background: #e6fcf5; border-color: #63e6be; color: #0ca678; font-weight: 700; }
+    .tool-btn.btn-draw { background: #f3d9fa; border-color: #e599f7; color: #862e9c; font-weight: 700; }
     .tool-btn.btn-danger { background: #fff5f5; border-color: #ff8787; color: #e03131; }
 
     .color-group { display: inline-flex; align-items: center; gap: 6px; padding-right: 4px; flex-shrink: 0; }
@@ -75,15 +76,6 @@
     .editor-wrapper { flex: 1; padding: 20px; overflow-y: auto; position: relative; height: 100%; }
     #noteViewer { min-height: 100%; font-size: 0.98rem; line-height: 1.8; color: #2b2b2b; outline: none; padding-bottom: 250px; position: relative; z-index: 1; }
 
-    /* 公式區塊與刪除標籤 */
-    .formula-box { display: inline-flex; align-items: center; background: #e7f5ff; border: 1.5px solid #74c0fc; border-radius: 6px; padding: 4px 8px; margin: 4px; font-size: 0.92rem; vertical-align: middle; position: relative; user-select: none; }
-    .frac-wrap { display: inline-flex; flex-direction: column; vertical-align: middle; text-align: center; font-size: 0.88em; padding: 0 4px; line-height: 1.1; margin: 0 4px; font-weight: 600; color: #1864ab; }
-    .frac-num { border-bottom: 1.5px solid #1864ab; padding: 2px 4px; outline: none; }
-    .frac-den { padding: 2px 4px; outline: none; }
-    
-    .formula-del-tag { background: #ff4d4f; color: #fff; font-size: 11px; font-weight: bold; border-radius: 3px; padding: 1px 5px; margin-left: 8px; cursor: pointer; display: inline-block; line-height: 1.2; }
-    .formula-del-tag:hover { background: #cf1322; }
-
     /* 表格樣式 */
     .acc-table { border-collapse: collapse; width: 100%; margin: 12px 0; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-radius: 6px; overflow: hidden; }
     .acc-table th, .acc-table td { border: 1px solid #ced4da; padding: 8px 12px; text-align: left; font-size: 0.9rem; min-width: 80px; outline: none; }
@@ -94,20 +86,20 @@
     #ctxMenu div { padding: 8px 16px; cursor: pointer; }
     #ctxMenu div:hover { background: #f1f3f5; color: #007aff; }
 
-    .tree-box { position: absolute; min-width: 120px; min-height: 50px; background: #fff; border: 2px solid #007aff; border-radius: 8px; font-size: 0.85rem; z-index: 10; box-shadow: 0 3px 8px rgba(0,0,0,0.12); touch-action: none; resize: both; overflow: auto; display: inline-block; }
-    .box-drag-handle { background: #f0f4f8; height: 18px; cursor: move; border-top-left-radius: 6px; border-top-right-radius: 6px; border-bottom: 1px solid #e0e0e0; }
-    .box-quick-del { position: absolute; top: -8px; right: -8px; width: 22px; height: 22px; background: #ff3b30; color: white; border-radius: 50%; font-size: 13px; font-weight: bold; line-height: 22px; text-align: center; cursor: pointer; z-index: 30; border: 1.5px solid #fff; }
+    /* 自由文字框 / 照片 / 手寫框 萬能容器 */
+    .tree-box { position: absolute; min-width: 100px; min-height: 50px; background: #fff; border: 2px solid #007aff; border-radius: 8px; font-size: 0.85rem; z-index: 10; box-shadow: 0 3px 8px rgba(0,0,0,0.12); touch-action: none; resize: both; overflow: hidden; display: inline-block; }
+    .box-drag-handle { background: #f0f4f8; height: 20px; cursor: move; border-top-left-radius: 6px; border-top-right-radius: 6px; border-bottom: 1px solid #e0e0e0; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #888; }
+    .box-quick-del { position: absolute; top: -6px; right: -6px; width: 22px; height: 22px; background: #ff3b30; color: white; border-radius: 50%; font-size: 13px; font-weight: bold; line-height: 22px; text-align: center; cursor: pointer; z-index: 30; border: 1.5px solid #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
     .box-content { padding: 6px 10px; outline: none; cursor: text; min-height: 30px; }
+    .box-img-content { width: 100%; height: calc(100% - 20px); object-fit: contain; display: block; }
 
-    /* 彈窗 */
-    .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); z-index: 300; display: none; justify-content: center; align-items: center; }
-    .modal-overlay.show { display: flex; }
-    .modal-card { background: #fff; width: 90%; max-width: 550px; border-radius: 12px; padding: 18px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); max-height: 80vh; display: flex; flex-direction: column; }
-    .modal-header { display: flex; justify-content: space-between; align-items: center; font-weight: bold; font-size: 1.1rem; margin-bottom: 12px; }
-    .search-input { width: 100%; padding: 8px 12px; font-size: 0.95rem; border: 1px solid #ced4da; border-radius: 6px; margin-bottom: 12px; outline: none; }
-    .formula-list { overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 8px; }
-    .formula-item { padding: 10px; border: 1px solid #e9ecef; border-radius: 8px; cursor: pointer; transition: background 0.15s; }
-    .formula-item:hover { background: #e7f5ff; border-color: #74c0fc; }
+    /* 全螢幕手寫 Modal */
+    #drawModal { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #fff; z-index: 2000; display: none; flex-direction: column; }
+    #drawModal.show { display: flex; }
+    .draw-header { padding: 10px 16px; background: #f8f9fa; border-bottom: 1px solid #ddd; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
+    .draw-tools { display: flex; align-items: center; gap: 10px; }
+    .draw-canvas-container { flex: 1; width: 100%; height: 100%; background: #ffffff; touch-action: none; position: relative; }
+    #handwritingCanvas { width: 100%; height: 100%; display: block; cursor: crosshair; }
 
     @media (max-width: 768px) {
       #sidebar { position: fixed; top: 0; left: 0; height: 100%; transform: translateX(-100%); }
@@ -128,7 +120,7 @@
         <div>
           <div class="card-icon">🧮</div>
           <div class="card-title">會計學</div>
-          <div class="card-desc">包含初會、中會 13 個完整章節，附帶折舊公式、財務比率、表格與計算範本。</div>
+          <div class="card-desc">包含初會、中會 13 個完整章節，支援手寫算式、拍照紀錄與表格範本。</div>
         </div>
         <div class="card-btn">進入科目筆記 ➔</div>
       </div>
@@ -137,7 +129,7 @@
         <div>
           <div class="card-icon">⚖️</div>
           <div class="card-title">會計審計法規</div>
-          <div class="card-desc">包含預算法、會計法、決算法、審計法四大核心法規獨立筆記與重點法條。</div>
+          <div class="card-desc">包含預算法、會計法、決算法、審計法四大核心法規獨立筆記頁面。</div>
         </div>
         <div class="card-btn" style="color:#2b8a3e;">進入科目筆記 ➔</div>
       </div>
@@ -194,25 +186,54 @@
           <button class="tool-btn" style="font-weight:900;" onmousedown="event.preventDefault(); toggleBold();">B 粗體</button>
           <button class="tool-btn btn-hl" onmousedown="event.preventDefault(); applyHighlight('#ffec99');">🖍️ 螢光筆</button>
           <button class="tool-btn btn-clear" onmousedown="event.preventDefault(); clearFormatting();">🧹 清除格式</button>
-          <button class="tool-btn btn-formula" id="formulaBtn" onclick="openFormulaModal()">🔍 搜尋速查/公式</button>
-          <button class="tool-btn btn-danger" onclick="purgeAllFormulas()">🔥 清空頁面舊公式</button>
-          <button class="tool-btn btn-tbl" onclick="insertDefaultTable()">📊 插入預設表格</button>
+          
+          <!-- 📷 新增照片 (拍照 / 上傳) -->
+          <button class="tool-btn btn-photo" onclick="triggerCameraInput()">📷 拍照/照片</button>
+          <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display:none;" onchange="handleImageUpload(event)">
+
+          <!-- ✍️ 全螢幕手寫 -->
+          <button class="tool-btn btn-draw" onclick="openDrawModal()">✍️ 手寫</button>
+
+          <button class="tool-btn btn-tbl" onclick="insertDefaultTable()">📊 預設表格</button>
           <button class="tool-btn" onclick="addRow()">➕ 列</button>
           <button class="tool-btn" onclick="addCol()">➕ 欄</button>
           <button class="tool-btn btn-danger" onclick="delRow()">➖ 列</button>
           <button class="tool-btn btn-danger" onclick="delCol()">➖ 欄</button>
           <button class="tool-btn btn-danger" onclick="deleteTable()">🗑️ 刪除表格</button>
           <button class="tool-btn btn-primary" onclick="addFreeBox()">🔳 文字框</button>
-          <button class="tool-btn btn-danger" onclick="resetCurrentChapter()">💣 清空本頁筆記</button>
-          <button class="tool-btn" onclick="exportData()">📥 備份</button>
-          <button class="tool-btn" onclick="importData()">📤 還原</button>
-          <input type="file" id="importInput" style="display:none;" onchange="handleFileSelect(event)">
+          <button class="tool-btn btn-danger" onclick="resetCurrentChapter()">💣 清空本頁</button>
         </div>
       </div>
 
       <div class="editor-wrapper" id="canvasWrapper">
         <div id="noteViewer" contenteditable="true" oninput="debouncedSave()" oncontextmenu="handleRightClick(event)"></div>
       </div>
+    </div>
+  </div>
+
+  <!-- ✍️ 全螢幕手寫板 Modal -->
+  <div id="drawModal">
+    <div class="draw-header">
+      <div class="draw-tools">
+        <span style="font-weight:bold; font-size:0.95rem;">✍️ 手寫算式/筆記</span>
+        <label>顏色: <input type="color" id="drawColor" value="#000000"></label>
+        <label>粗細: 
+          <select id="drawLineWidth">
+            <option value="2">細</option>
+            <option value="4" selected>中</option>
+            <option value="8">粗</option>
+          </select>
+        </label>
+        <button class="tool-btn btn-clear" onclick="setEraser()">橡皮擦</button>
+        <button class="tool-btn btn-danger" onclick="clearCanvas()">清空畫面</button>
+      </div>
+      <div>
+        <button class="tool-btn btn-primary" style="padding:6px 16px;" onclick="saveHandwriting()">💾 儲存並插入筆記</button>
+        <button class="tool-btn" onclick="closeDrawModal()">✕ 取消</button>
+      </div>
+    </div>
+    <div class="draw-canvas-container" id="drawCanvasWrap">
+      <canvas id="handwritingCanvas"></canvas>
     </div>
   </div>
 
@@ -223,18 +244,6 @@
     <div onclick="delRow()">➖ 刪除此列</div>
     <div onclick="delCol()">➖ 刪除此欄</div>
     <div onclick="deleteTable()" style="color:#e03131; font-weight:bold;">🗑️ 刪除整個表格</div>
-  </div>
-
-  <!-- 速查/公式彈窗 -->
-  <div class="modal-overlay" id="formulaModal">
-    <div class="modal-card">
-      <div class="modal-header">
-        <span id="modalHeaderTitle">🧮 點擊帶入公式 / 重點法條</span>
-        <button class="micro-btn" style="font-size:1.2rem;" onclick="closeFormulaModal()">✕</button>
-      </div>
-      <input type="text" class="search-input" id="formulaSearchInput" placeholder="輸入關鍵字搜尋..." oninput="filterFormulas()">
-      <div class="formula-list" id="formulaList"></div>
-    </div>
   </div>
 
   <!-- Firebase SDK -->
@@ -262,7 +271,6 @@
   </script>
 
   <script>
-    /* 三大科目更新後架構 */
     const subjectData = {
       acc: {
         name: "會計學",
@@ -280,16 +288,6 @@
           { id: "c11", title: "第十一章 現金流量表", content: "" },
           { id: "c12", title: "第十二章 財務報表分析", content: "" },
           { id: "c13", title: "第十三章 錯誤更正", content: "" }
-        ],
-        formulas: [
-          { name: "直線法折舊 (每期)", num: "成本 - 殘值", den: "耐用年數" },
-          { name: "年數合計法 (折舊)", num: "Cost - Residual × 剩餘年數", den: "N(N+1) / 2" },
-          { name: "雙倍餘額遞減法 (折舊額)", customText: "期初帳面金額 × (2 / 耐用年數)" },
-          { name: "生產數量法 (單位折舊)", num: "取得成本 - 殘值", den: "預計總生產量(或使用數)" },
-          { name: "應收帳款週轉率", num: "銷貨淨額", den: "平均應收帳款淨額" },
-          { name: "存貨週轉率", num: "銷貨成本", den: "平均存貨" },
-          { name: "流動比率", num: "流動資產", den: "流動負債" },
-          { name: "速動比率", num: "速動資產", den: "流動負債" }
         ]
       },
       law: {
@@ -299,24 +297,12 @@
           { id: "l2", title: "會計法", content: "" },
           { id: "l3", title: "決算法", content: "" },
           { id: "l4", title: "審計法", content: "" }
-        ],
-        formulas: [
-          { name: "預算法第18條", customText: "歲入、歲出、債務之舉借及以前年度歲計賸餘之移用，統稱為歲入歲出大綱。" },
-          { name: "預算法第22條", customText: "第一預備金於公務機關單位預算中設定之；第二預備金於總預算中設定之。" },
-          { name: "會計法第29條", customText: "會計憑證分為原始憑證與記帳憑證兩類。" },
-          { name: "審計法第2條", customText: "審計職權包括：監督預算之執行、核定收支命令、審核決算、稽察財物及財政違失。" }
         ]
       },
       civ: {
         name: "公民",
         chapters: [
           { id: "v1", title: "公民綜合筆記與重點整理", content: "" }
-        ],
-        formulas: [
-          { name: "機會成本", customText: "機會成本 = 選項本身的直接成本 + 放棄選項中價值最高者 (隱性成本)" },
-          { name: "需求法則", customText: "價格 (P) 上升 → 需求量 (Qd) 下降；價格 (P) 下降 → 需求量 (Qd) 上升" },
-          { name: "GDP 國內生產毛額", customText: "GDP = C (消費) + I (投資) + G (政府支出) + (X - M) (淨出口)" },
-          { name: "權力分立原則", customText: "立法權（立法院）、行政權（行政院）、司法權（司法院）、考試權、監察權" }
         ]
       }
     };
@@ -327,19 +313,6 @@
     let saveTimeout = null;
     let isCloudLoaded = false;
     let lastCellContext = null;
-
-    /* 全局刪除標籤委派 */
-    document.addEventListener('click', function(e) {
-      if (e.target && e.target.classList.contains('formula-del-tag')) {
-        e.preventDefault();
-        e.stopPropagation();
-        const box = e.target.closest('.formula-box');
-        if (box) {
-          box.remove();
-          debouncedSave();
-        }
-      }
-    });
 
     function goHome() {
       saveData();
@@ -354,7 +327,6 @@
       currentChapId = chapters[0].id;
 
       document.getElementById("sidebarSubjectTitle").innerText = `📚 ${subjectData[subjectKey].name}選單`;
-      document.getElementById("modalHeaderTitle").innerText = `🔍 點擊帶入 ${subjectData[subjectKey].name} 速查資料`;
 
       document.getElementById("homePage").style.display = "none";
       document.getElementById("appPage").style.display = "flex";
@@ -458,21 +430,12 @@
         const viewer = document.getElementById("noteViewer");
         viewer.innerHTML = chap.content || "";
         
-        /* 更新雙行式標題 */
         document.getElementById("subTitle").innerText = subjectData[currentSubjectKey].name;
         document.getElementById("mainTitle").innerText = chap.title;
+        
+        bindBoxEvents(); // 重新綁定拖曳與點擊
       }
       renderSidebar();
-    }
-
-    function purgeAllFormulas() {
-      const viewer = document.getElementById("noteViewer");
-      const boxes = viewer.querySelectorAll('.formula-box');
-      if (boxes.length === 0) return alert("當前頁面沒有公式或速查方塊！");
-      if (confirm(`確定要將當前頁面的全部 ${boxes.length} 個方塊全數刪除嗎？`)) {
-        boxes.forEach(box => box.remove());
-        debouncedSave();
-      }
     }
 
     function resetCurrentChapter() {
@@ -490,6 +453,214 @@
       document.execCommand('removeFormat', false, null);
       document.execCommand('hiliteColor', false, 'transparent');
       debouncedSave();
+    }
+
+    /* 📷 拍照 / 相片上傳與拖曳框處理 */
+    function triggerCameraInput() {
+      document.getElementById('cameraInput').click();
+    }
+
+    function handleImageUpload(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        createMediaBox(evt.target.result, 'img');
+      };
+      reader.readAsDataURL(file);
+      e.target.value = ''; // 重置 input
+    }
+
+    /* 萬能拖曳框建立 (文字/圖片/手寫) */
+    function createMediaBox(srcOrText, type = 'text') {
+      const wrapper = document.getElementById('canvasWrapper');
+      const boxId = "box_" + Date.now();
+      const box = document.createElement('div');
+      box.className = 'tree-box';
+      box.id = boxId;
+      box.style.left = '40px';
+      box.style.top = (80 + wrapper.scrollTop) + 'px';
+
+      if (type === 'img') {
+        box.style.width = '240px';
+        box.style.height = '200px';
+        box.innerHTML = `
+          <div class="box-quick-del" onclick="removeTreeBox('${boxId}')">✕</div>
+          <div class="box-drag-handle">≡ 拖曳移動</div>
+          <img src="${srcOrText}" class="box-img-content">
+        `;
+      } else {
+        box.style.width = '160px';
+        box.style.height = '80px';
+        box.innerHTML = `
+          <div class="box-quick-del" onclick="removeTreeBox('${boxId}')">✕</div>
+          <div class="box-drag-handle">≡ 拖曳移動</div>
+          <div class="box-content" contenteditable="true">${srcOrText}</div>
+        `;
+      }
+
+      wrapper.appendChild(box);
+      initDragForBox(box);
+      debouncedSave();
+    }
+
+    function addFreeBox() {
+      createMediaBox('點擊輸入重點...', 'text');
+    }
+
+    function removeTreeBox(boxId) {
+      const box = document.getElementById(boxId);
+      if (box) box.remove();
+      debouncedSave();
+    }
+
+    /* 拖曳邏輯 */
+    function initDragForBox(box) {
+      const handle = box.querySelector('.box-drag-handle');
+      if (!handle) return;
+
+      let isDragging = false;
+      let startX, startY, startLeft, startTop;
+
+      const startDrag = (e) => {
+        isDragging = true;
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        startX = clientX;
+        startY = clientY;
+        startLeft = parseInt(box.style.left) || 0;
+        startTop = parseInt(box.style.top) || 0;
+        
+        document.addEventListener('mousemove', onDrag);
+        document.addEventListener('mouseup', stopDrag);
+        document.addEventListener('touchmove', onDrag, { passive: false });
+        document.addEventListener('touchend', stopDrag);
+      };
+
+      const onDrag = (e) => {
+        if (!isDragging) return;
+        if (e.cancelable) e.preventDefault();
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        const dx = clientX - startX;
+        const dy = clientY - startY;
+
+        box.style.left = (startLeft + dx) + 'px';
+        box.style.top = (startTop + dy) + 'px';
+      };
+
+      const stopDrag = () => {
+        if (isDragging) {
+          isDragging = false;
+          debouncedSave();
+        }
+        document.removeEventListener('mousemove', onDrag);
+        document.removeEventListener('mouseup', stopDrag);
+        document.removeEventListener('touchmove', onDrag);
+        document.removeEventListener('touchend', stopDrag);
+      };
+
+      handle.addEventListener('mousedown', startDrag);
+      handle.addEventListener('touchstart', startDrag, { passive: false });
+    }
+
+    function bindBoxEvents() {
+      document.querySelectorAll('.tree-box').forEach(box => {
+        initDragForBox(box);
+      });
+    }
+
+    /* ✍️ 全螢幕手寫功能 */
+    let canvas, ctx;
+    let isDrawing = false;
+    let isEraser = false;
+
+    function openDrawModal() {
+      const modal = document.getElementById('drawModal');
+      modal.classList.add('show');
+
+      canvas = document.getElementById('handwritingCanvas');
+      ctx = canvas.getContext('2d');
+
+      const wrap = document.getElementById('drawCanvasWrap');
+      canvas.width = wrap.clientWidth;
+      canvas.height = wrap.clientHeight;
+
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      
+      initCanvasEvents();
+    }
+
+    function closeDrawModal() {
+      document.getElementById('drawModal').classList.remove('show');
+    }
+
+    function initCanvasEvents() {
+      const getPos = (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        return {
+          x: clientX - rect.left,
+          y: clientY - rect.top
+        };
+      };
+
+      const startDraw = (e) => {
+        isDrawing = true;
+        const pos = getPos(e);
+        ctx.beginPath();
+        ctx.moveTo(pos.x, pos.y);
+      };
+
+      const drawMove = (e) => {
+        if (!isDrawing) return;
+        if (e.cancelable) e.preventDefault();
+        const pos = getPos(e);
+
+        if (isEraser) {
+          ctx.globalCompositeOperation = 'destination-out';
+          ctx.lineWidth = 20;
+        } else {
+          ctx.globalCompositeOperation = 'source-over';
+          ctx.strokeStyle = document.getElementById('drawColor').value;
+          ctx.lineWidth = document.getElementById('drawLineWidth').value;
+        }
+
+        ctx.lineTo(pos.x, pos.y);
+        ctx.stroke();
+      };
+
+      const stopDraw = () => {
+        isDrawing = false;
+      };
+
+      canvas.onmousedown = startDraw;
+      canvas.onmousemove = drawMove;
+      canvas.onmouseup = stopDraw;
+
+      canvas.ontouchstart = startDraw;
+      canvas.ontouchmove = drawMove;
+      canvas.ontouchend = stopDraw;
+    }
+
+    function setEraser() {
+      isEraser = true;
+    }
+
+    function clearCanvas() {
+      isEraser = false;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+
+    function saveHandwriting() {
+      // 自動剪裁掉周圍的空白部分
+      const dataUrl = canvas.toDataURL('image/png');
+      createMediaBox(dataUrl, 'img');
+      closeDrawModal();
+      clearCanvas();
     }
 
     /* 表格功能 */
@@ -614,76 +785,6 @@
       document.getElementById('ctxMenu').style.display = 'none';
     }
 
-    /* 速查與公式 Modal */
-    function openFormulaModal() {
-      document.getElementById('formulaModal').classList.add('show');
-      document.getElementById('formulaSearchInput').value = '';
-      filterFormulas();
-    }
-
-    function closeFormulaModal() {
-      document.getElementById('formulaModal').classList.remove('show');
-    }
-
-    function filterFormulas() {
-      const query = document.getElementById('formulaSearchInput').value.toLowerCase();
-      const listContainer = document.getElementById('formulaList');
-      listContainer.innerHTML = '';
-
-      const currentList = subjectData[currentSubjectKey].formulas || [];
-      const filtered = currentList.filter(f => f.name.toLowerCase().includes(query) || (f.customText && f.customText.toLowerCase().includes(query)));
-
-      filtered.forEach(f => {
-        const item = document.createElement('div');
-        item.className = 'formula-item';
-        
-        let formulaPreview = '';
-        if (f.customText) {
-          formulaPreview = `<span><b>${f.name}</b>：${f.customText}</span>`;
-        } else {
-          formulaPreview = `
-            <div style="display:flex; align-items:center;">
-              <span style="font-weight:bold; margin-right:6px;">${f.name} = </span>
-              <span class="frac-wrap"><span class="frac-num">${f.num}</span><span class="frac-den">${f.den}</span></span>
-            </div>
-          `;
-        }
-
-        item.innerHTML = formulaPreview;
-        item.onclick = () => insertFormulaToNote(f);
-        listContainer.appendChild(item);
-      });
-    }
-
-    function insertFormulaToNote(f) {
-      let html = '';
-      const delTagHtml = `<span class="formula-del-tag" contenteditable="false">刪除</span>`;
-
-      if (f.customText) {
-        html = `
-          <span class="formula-box" contenteditable="false">
-            <b>${f.name}</b>：${f.customText}
-            ${delTagHtml}
-          </span>&nbsp;
-        `;
-      } else {
-        html = `
-          <span class="formula-box" contenteditable="false">
-            <b>${f.name}</b>&nbsp;=&nbsp;
-            <span class="frac-wrap">
-              <span class="frac-num" contenteditable="true">${f.num}</span>
-              <span class="frac-den" contenteditable="true">${f.den}</span>
-            </span>
-            ${delTagHtml}
-          </span>&nbsp;
-        `;
-      }
-      closeFormulaModal();
-      document.getElementById('noteViewer').focus();
-      document.execCommand('insertHTML', false, html);
-      debouncedSave();
-    }
-
     function toggleSidebar() {
       document.getElementById('sidebar').classList.toggle('open');
       document.getElementById('sidebarOverlay').classList.toggle('show');
@@ -707,65 +808,6 @@
     function toggleBold() {
       document.execCommand('bold', false, null);
       debouncedSave();
-    }
-
-    function addFreeBox() {
-      const wrapper = document.getElementById('canvasWrapper');
-      const boxId = "box_" + Date.now();
-      const box = document.createElement('div');
-      box.className = 'tree-box';
-      box.id = boxId;
-      box.style.left = '60px';
-      box.style.top = (100 + wrapper.scrollTop) + 'px';
-
-      box.innerHTML = `
-        <div class="box-quick-del" onclick="removeTreeBox('${boxId}')">✕</div>
-        <div class="box-drag-handle"></div>
-        <div class="box-content" contenteditable="true">輸入重點/註解...</div>
-      `;
-      wrapper.appendChild(box);
-      debouncedSave();
-    }
-
-    function removeTreeBox(boxId) {
-      const box = document.getElementById(boxId);
-      if (box) box.remove();
-      debouncedSave();
-    }
-
-    function exportData() {
-      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(chapters));
-      const downloadAnchor = document.createElement('a');
-      downloadAnchor.setAttribute("href", dataStr);
-      downloadAnchor.setAttribute("download", `${currentSubjectKey}_notes_backup.json`);
-      document.body.appendChild(downloadAnchor);
-      downloadAnchor.click();
-      downloadAnchor.remove();
-    }
-
-    function importData() {
-      document.getElementById('importInput').click();
-    }
-
-    function handleFileSelect(e) {
-      const file = e.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = function(evt) {
-        try {
-          const imported = JSON.parse(evt.target.result);
-          if (Array.isArray(imported)) {
-            chapters = imported;
-            saveData();
-            renderSidebar();
-            loadChap(currentChapId);
-            alert("備份資料載入成功！");
-          }
-        } catch(err) {
-          alert("檔案格式不正確！");
-        }
-      };
-      reader.readAsText(file);
     }
   </script>
 </body>
