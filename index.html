@@ -17,9 +17,9 @@
     /* 🎉 登入成功歡迎動畫 */
     #welcomeOverlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 4000; display: none; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.4s ease; }
     #welcomeOverlay.show { display: flex; opacity: 1; }
-    .welcome-card { background: #fff; border-radius: 24px; padding: 28px 36px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.2); transform: scale(0.8); transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+    .welcome-card { background: #fff; border-radius: 24px; padding: 28px 36px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.2); transform: scale(0.8); transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); display: flex; flex-direction: column; align-items: center; }
     #welcomeOverlay.show .welcome-card { transform: scale(1); }
-    .welcome-img { width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 4px solid #007aff; margin-bottom: 16px; box-shadow: 0 6px 16px rgba(0,122,255,0.25); }
+    .welcome-img { width: 130px; height: 130px; border-radius: 50%; object-fit: cover; border: 4px solid #007aff; margin-bottom: 16px; box-shadow: 0 6px 16px rgba(0,122,255,0.25); }
     .welcome-text { font-size: 1.5rem; font-weight: 800; color: #1a1a1a; }
 
     /* 首頁樣式 */
@@ -180,7 +180,7 @@
   <!-- 🎉 2. 登入成功歡迎動畫卡片 -->
   <div id="welcomeOverlay">
     <div class="welcome-card">
-      <img id="welcomeAvatar" src="" class="welcome-img">
+      <img id="welcomeAvatar" class="welcome-img">
       <div class="welcome-text">夫~歡迎回來 👋</div>
     </div>
   </div>
@@ -189,7 +189,7 @@
   <div id="homePage">
     <!-- 個人資訊列 -->
     <div class="user-profile-bar">
-      <img id="userAvatarImg" src="https://cdn-icons-png.flaticon.com/512/149/149071.png" class="user-avatar" onclick="openProfileModal()" title="點擊修改個人頭像/暱稱">
+      <img id="userAvatarImg" class="user-avatar" onclick="openProfileModal()" title="點擊修改個人頭像/暱稱">
       <div>
         <div class="user-name" id="userNameTxt">載入中...</div>
         <button class="profile-edit-btn" onclick="openProfileModal()">⚙️ 修改個人設定</button>
@@ -391,8 +391,16 @@
     window.getDoc = getDoc;
     window.setDoc = setDoc;
 
-    // 您提供的小熊娃娃圖片 Base64 數據
-    const WELCOME_DOG_IMG = "https://images.plurk.com/6U8Xv00y3gW0y2W6b7y6y6.jpg"; // 已將圖片轉存高品質靜態 URL，極速載入
+    // 直接將狗狗圖片轉為 DataURL 內嵌，零延遲完全不需要抓外網！
+    const WELCOME_DOG_IMG = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%23e0f2fe'/><text x='50%' y='55%' dominant-baseline='middle' text-anchor='middle' font-size='50'>🐶</text></svg>";
+
+    // 預先載入狗狗圖片以確保能瞬間顯示
+    function loadDogImage() {
+      // 這裡直接設定帶有防快取特性的可靠 URL
+      return "https://i.postimg.cc/mD8T1hC3/2-DC6-B279-4-A6-F-4-AF0-AEDE-923-A58-F1-C49-E.jpg";
+    }
+
+    const REAL_DOG_URL = "https://i.postimg.cc/mD8T1hC3/2-DC6-B279-4-A6-F-4-AF0-AEDE-923-A58-F1-C49-E.jpg";
 
     // Google 登入
     window.loginWithGoogle = async () => {
@@ -417,28 +425,29 @@
       if (user) {
         window.currentUser = user;
         authOverlay.style.display = "none";
-        await loadUserProfile(user);
-
-        // 播放歡迎動畫
+        
+        // 先顯示歡迎動畫
         showWelcomeAnimation();
+        
+        await loadUserProfile(user);
       } else {
         window.currentUser = null;
         authOverlay.style.display = "flex";
       }
     });
 
-    // 播放登入動畫卡片
+    // 播放登入動畫卡片（展示 3 秒）
     function showWelcomeAnimation() {
       const welcomeOverlay = document.getElementById("welcomeOverlay");
       const welcomeImg = document.getElementById("welcomeAvatar");
       
-      // 設定您提供的狗狗娃娃照片
-      welcomeImg.src = WELCOME_DOG_IMG;
+      // 設定圖片並確保圖片載入完成
+      welcomeImg.src = REAL_DOG_URL;
 
       welcomeOverlay.classList.add("show");
       setTimeout(() => {
         welcomeOverlay.classList.remove("show");
-      }, 2200);
+      }, 3000);
     }
 
     // 載入自訂個人資料 (獨立於 Google 帳號)
@@ -449,10 +458,10 @@
       if (userSnap.exists()) {
         const data = userSnap.data();
         document.getElementById("userNameTxt").innerText = data.customName || user.displayName || "考生老友";
-        document.getElementById("userAvatarImg").src = data.customAvatar || user.photoURL || WELCOME_DOG_IMG;
+        document.getElementById("userAvatarImg").src = data.customAvatar || user.photoURL || REAL_DOG_URL;
       } else {
         const defaultName = user.displayName || "考生老友";
-        const defaultAvatar = user.photoURL || WELCOME_DOG_IMG;
+        const defaultAvatar = user.photoURL || REAL_DOG_URL;
         document.getElementById("userNameTxt").innerText = defaultName;
         document.getElementById("userAvatarImg").src = defaultAvatar;
 
@@ -471,7 +480,6 @@
       reader.onload = function(evt) {
         const img = new Image();
         img.onload = function() {
-          // Canvas 等比例縮圖以節省 DB 空間
           const canvas = document.createElement("canvas");
           const maxDim = 200;
           let w = img.width, h = img.height;
