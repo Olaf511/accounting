@@ -8,8 +8,8 @@
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body { height: 100%; width: 100%; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f8f9fa; color: #333; }
 
-    /* 🔒 登入遮罩畫面 */
-    #authOverlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #ffffff; z-index: 3000; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; padding: 20px; text-align: center; }
+    /* 🔒 登入遮罩畫面（預設隱藏，避免重整時閃爍） */
+    #authOverlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #ffffff; z-index: 3000; display: none; flex-direction: column; align-items: center; justify-content: center; gap: 16px; padding: 20px; text-align: center; }
     .auth-card { background: #fff; padding: 32px 24px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); border: 1px solid #eaeaea; max-width: 360px; width: 100%; }
     .google-btn { width: 100%; padding: 12px; background: #4285f4; color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; transition: background 0.2s; }
     .google-btn:hover { background: #3367d6; }
@@ -23,7 +23,7 @@
     .welcome-text { font-size: 1.5rem; font-weight: 800; color: #1a1a1a; }
 
     /* 首頁樣式 */
-    #homePage { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #f0f2f5; z-index: 1000; overflow-y: auto; padding: 24px 16px; display: flex; flex-direction: column; align-items: center; }
+    #homePage { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #f0f2f5; z-index: 1000; overflow-y: auto; padding: 24px 16px; display: none; flex-direction: column; align-items: center; }
     .home-header { text-align: center; margin-bottom: 24px; margin-top: 10px; }
     .home-title { font-size: 1.8rem; font-weight: 800; color: #1a1a1a; margin-bottom: 8px; }
     .home-subtitle { font-size: 0.95rem; color: #666; }
@@ -391,16 +391,8 @@
     window.getDoc = getDoc;
     window.setDoc = setDoc;
 
-    // 直接將狗狗圖片轉為 DataURL 內嵌，零延遲完全不需要抓外網！
-    const WELCOME_DOG_IMG = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%23e0f2fe'/><text x='50%' y='55%' dominant-baseline='middle' text-anchor='middle' font-size='50'>🐶</text></svg>";
-
-    // 預先載入狗狗圖片以確保能瞬間顯示
-    function loadDogImage() {
-      // 這裡直接設定帶有防快取特性的可靠 URL
-      return "https://i.postimg.cc/mD8T1hC3/2-DC6-B279-4-A6-F-4-AF0-AEDE-923-A58-F1-C49-E.jpg";
-    }
-
-    const REAL_DOG_URL = "https://i.postimg.cc/mD8T1hC3/2-DC6-B279-4-A6-F-4-AF0-AEDE-923-A58-F1-C49-E.jpg";
+    // 🐶 使用完全內嵌式 SVG 繪製的可愛狗狗頭像，永遠不會失效不見！
+    const EMBEDDED_DOG_AVATAR = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='50' fill='%23f1f5f9'/><circle cx='50' cy='52' r='35' fill='%23ffffff' stroke='%23e2e8f0' stroke-width='2'/><path d='M 25 35 Q 18 15 35 22 Z' fill='%231e3a8a'/><path d='M 75 35 Q 82 15 65 22 Z' fill='%231e3a8a'/><rect x='28' y='18' width='44' height='12' rx='6' fill='%232563eb'/><circle cx='40' cy='45' r='4' fill='%231e293b'/><circle cx='60' cy='45' r='4' fill='%231e293b'/><ellipse cx='50' cy='55' rx='6' ry='5' fill='%230f172a'/><path d='M 45 62 Q 50 68 55 62' fill='none' stroke='%23334155' stroke-width='2.5' stroke-linecap='round'/><path d='M 47 64 Q 50 70 53 64' fill='%23f43f5e'/></svg>";
 
     // Google 登入
     window.loginWithGoogle = async () => {
@@ -414,6 +406,7 @@
     // 登出
     window.logoutGoogle = async () => {
       if (confirm("確定要登出嗎？")) {
+        localStorage.clear(); // 清除儲存的位置記憶
         await signOut(auth);
         location.reload();
       }
@@ -426,31 +419,55 @@
         window.currentUser = user;
         authOverlay.style.display = "none";
         
-        // 先顯示歡迎動畫
+        // 1. 彈出「夫~歡迎回來」卡片動畫
         showWelcomeAnimation();
         
+        // 2. 讀取個人資料
         await loadUserProfile(user);
+
+        // 3. 恢復上次關閉/重整前的頁面位置
+        restorePreviousPage();
+
       } else {
         window.currentUser = null;
-        authOverlay.style.display = "flex";
+        authOverlay.style.display = "flex"; // 確定未登入才顯示登入頁
+        document.getElementById("homePage").style.display = "none";
+        document.getElementById("appPage").style.display = "none";
       }
     });
 
-    // 播放登入動畫卡片（展示 3 秒）
+    // 展示「夫~歡迎回來」卡片
     function showWelcomeAnimation() {
       const welcomeOverlay = document.getElementById("welcomeOverlay");
       const welcomeImg = document.getElementById("welcomeAvatar");
       
-      // 設定圖片並確保圖片載入完成
-      welcomeImg.src = REAL_DOG_URL;
+      // 使用絕對不失效的內嵌狗狗圖片
+      welcomeImg.src = EMBEDDED_DOG_AVATAR;
 
       welcomeOverlay.classList.add("show");
       setTimeout(() => {
         welcomeOverlay.classList.remove("show");
-      }, 3000);
+      }, 2500);
     }
 
-    // 載入自訂個人資料 (獨立於 Google 帳號)
+    // 恢復上次閱讀的頁面與章節
+    function restorePreviousPage() {
+      const savedPage = localStorage.getItem("current_page_view"); // "home" 或 "app"
+      const savedSubject = localStorage.getItem("current_subject_key");
+      const savedChapId = localStorage.getItem("current_chap_id");
+
+      if (savedPage === "app" && savedSubject && window.subjectData[savedSubject]) {
+        // 如果上次在筆記頁面，直接進入該科目與章節
+        window.enterSubject(savedSubject, savedChapId);
+      } else {
+        // 否則顯示首頁
+        document.getElementById("homePage").style.display = "flex";
+        document.getElementById("appPage").style.display = "none";
+        localStorage.setItem("current_page_view", "home");
+      }
+    }
+
+    // 載入自訂個人資料
     async function loadUserProfile(user) {
       const userRef = doc(db, "users", user.uid);
       const userSnap = await getDoc(userRef);
@@ -458,18 +475,17 @@
       if (userSnap.exists()) {
         const data = userSnap.data();
         document.getElementById("userNameTxt").innerText = data.customName || user.displayName || "考生老友";
-        document.getElementById("userAvatarImg").src = data.customAvatar || user.photoURL || REAL_DOG_URL;
+        document.getElementById("userAvatarImg").src = data.customAvatar || EMBEDDED_DOG_AVATAR;
       } else {
         const defaultName = user.displayName || "考生老友";
-        const defaultAvatar = user.photoURL || REAL_DOG_URL;
         document.getElementById("userNameTxt").innerText = defaultName;
-        document.getElementById("userAvatarImg").src = defaultAvatar;
+        document.getElementById("userAvatarImg").src = EMBEDDED_DOG_AVATAR;
 
-        await setDoc(userRef, { customName: defaultName, customAvatar: defaultAvatar });
+        await setDoc(userRef, { customName: defaultName, customAvatar: EMBEDDED_DOG_AVATAR });
       }
     }
 
-    // Modal 選取圖片預覽與壓縮處理
+    // Modal 選取圖片預覽與處理
     let tempAvatarBase64 = null;
 
     window.previewSelectedAvatar = (e) => {
@@ -498,7 +514,6 @@
       reader.readAsDataURL(file);
     };
 
-    // 開啟個人資料 Modal
     window.openProfileModal = () => {
       if (!window.currentUser) return;
       document.getElementById("modalNameInput").value = document.getElementById("userNameTxt").innerText;
@@ -507,12 +522,10 @@
       document.getElementById("profileModal").classList.add("show");
     };
 
-    // 關閉 Modal
     window.closeProfileModal = () => {
       document.getElementById("profileModal").classList.remove("show");
     };
 
-    // 儲存修改
     window.saveProfileChanges = async () => {
       if (!window.currentUser) return;
       const newName = document.getElementById("modalNameInput").value.trim() || document.getElementById("userNameTxt").innerText;
@@ -565,6 +578,7 @@
         ]
       }
     };
+    window.subjectData = subjectData;
 
     let currentSubjectKey = "acc";
     let chapters = [];
@@ -579,14 +593,23 @@
     function goHome() {
       saveData();
       closeSidebar();
+      
+      // 記錄狀態為首頁
+      localStorage.setItem("current_page_view", "home");
+
       document.getElementById("appPage").style.display = "none";
       document.getElementById("homePage").style.display = "flex";
     }
 
-    function enterSubject(subjectKey) {
+    function enterSubject(subjectKey, targetChapId = null) {
       currentSubjectKey = subjectKey;
       chapters = JSON.parse(JSON.stringify(subjectData[subjectKey].chapters));
-      currentChapId = chapters[0].id;
+      currentChapId = targetChapId || chapters[0].id;
+
+      // 記憶目前的位置
+      localStorage.setItem("current_page_view", "app");
+      localStorage.setItem("current_subject_key", currentSubjectKey);
+      localStorage.setItem("current_chap_id", currentChapId);
 
       document.getElementById("sidebarSubjectTitle").innerText = `📚 ${subjectData[subjectKey].name}選單`;
 
@@ -595,6 +618,7 @@
 
       initFirebaseData();
     }
+    window.enterSubject = enterSubject;
 
     function toggleLockMode() {
       isLocked = !isLocked;
@@ -707,6 +731,8 @@
       }
       
       currentChapId = id;
+      localStorage.setItem("current_chap_id", currentChapId); // 更新目前章節位置
+      
       loadChap(id);
       saveData();
     }
