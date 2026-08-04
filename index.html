@@ -1363,7 +1363,7 @@
       debouncedSave();
     }
 
-    // 📱 不管點畫面空白處哪裡，都能直接把游標移到筆記最後方便打字
+    // 📍 點畫面空白處的座標，就在那個位置直接生成一個可以打字的文字框
     (function initTapAnywhereToType() {
       const wrapper = document.getElementById('canvasWrapper');
       const viewer = document.getElementById('noteViewer');
@@ -1371,16 +1371,20 @@
 
       wrapper.addEventListener('click', (e) => {
         if (isLocked) return;
-        // 點到文字框/圖片框，或本來就點在筆記文字上，交給原本行為，這裡不處理
-        if (e.target.closest('.tree-box') || viewer.contains(e.target)) return;
+        // 點到文字框/圖片框、箭頭連線，或點在筆記主文字上，交給原本行為，這裡不處理
+        if (e.target.closest('.tree-box') || e.target.closest('svg') || viewer.contains(e.target)) return;
 
-        viewer.focus();
-        const range = document.createRange();
-        range.selectNodeContents(viewer);
-        range.collapse(false);
-        const sel = window.getSelection();
-        sel.removeAllRanges();
-        sel.addRange(range);
+        const rect = wrapper.getBoundingClientRect();
+        const clickX = e.clientX - rect.left + wrapper.scrollLeft;
+        const clickY = e.clientY - rect.top + wrapper.scrollTop;
+
+        const boxWidth = 110, boxHeight = 56;
+        const left = Math.max(0, clickX - boxWidth / 2);
+        const top = Math.max(0, clickY - boxHeight / 2);
+
+        const box = createMediaBox('', 'text', { left, top });
+        const content = box.querySelector('.box-content');
+        if (content) content.focus();
       });
     })();
   </script>
