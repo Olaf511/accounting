@@ -4,6 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>夫筆記</title>
+  
+  <!-- 2. 手機新增至主畫面的 App Icon（設定為 圖 2 藍框手繪插畫） -->
+  <link rel="apple-touch-icon" sizes="180x180" href="image2.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="image2.png">
+  <link rel="shortcut icon" href="image2.png">
+
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body { height: 100%; width: 100%; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f8f9fa; color: #333; }
@@ -19,7 +25,9 @@
     #welcomeOverlay.show { display: flex; opacity: 1; }
     .welcome-card { background: #fff; border-radius: 24px; padding: 28px 36px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.2); transform: scale(0.8); transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); display: flex; flex-direction: column; align-items: center; }
     #welcomeOverlay.show .welcome-card { transform: scale(1); }
-    .welcome-img { width: 130px; height: 130px; border-radius: 50%; object-fit: cover; border: 4px solid #007aff; margin-bottom: 16px; box-shadow: 0 6px 16px rgba(0,122,255,0.25); }
+    
+    /* 1. 歡迎動畫內的頭像照片 (設定為 圖 1 實體照片) */
+    .welcome-img { width: 130px; height: 130px; border-radius: 50%; object-fit: cover; border: 4px solid #007aff; margin-bottom: 16px; box-shadow: 0 6px 16px rgba(0,122,255,0.25); background-color: #eee; }
     .welcome-text { font-size: 1.5rem; font-weight: 800; color: #1a1a1a; }
 
     /* 首頁樣式 */
@@ -30,7 +38,7 @@
 
     /* 👤 頂端個人資訊欄 */
     .user-profile-bar { display: flex; align-items: center; gap: 12px; background: #fff; padding: 8px 16px; border-radius: 30px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); margin-bottom: 20px; }
-    .user-avatar { width: 38px; height: 38px; border-radius: 50%; object-fit: cover; border: 2px solid #007aff; cursor: pointer; }
+    .user-avatar { width: 38px; height: 38px; border-radius: 50%; object-fit: cover; border: 2px solid #007aff; cursor: pointer; background-color: #eee; }
     .user-name { font-size: 0.9rem; font-weight: bold; color: #333; }
     .profile-edit-btn { background: none; border: none; font-size: 0.75rem; color: #007aff; cursor: pointer; text-decoration: underline; }
     .logout-btn { background: #fff5f5; color: #e03131; border: 1px solid #ffc9c9; padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: bold; cursor: pointer; }
@@ -41,7 +49,7 @@
     .edit-profile-card { background:#fff; border-radius:16px; padding:24px; width:100%; max-width:340px; box-shadow:0 10px 30px rgba(0,0,0,0.15); display:flex; flex-direction:column; gap:16px; }
     .edit-profile-title { font-size:1.1rem; font-weight:bold; color:#222; text-align:center; }
     .avatar-preview-wrapper { display:flex; flex-direction:column; align-items:center; gap:8px; }
-    .avatar-preview { width:80px; height:80px; border-radius:50%; object-fit:cover; border:2px solid #007aff; }
+    .avatar-preview { width:80px; height:80px; border-radius:50%; object-fit:cover; border:2px solid #007aff; background-color: #eee; }
     .form-group { display:flex; flex-direction:column; gap:6px; font-size:0.85rem; color:#555; text-align:left; }
     .form-input { padding:10px; border:1px solid #ccc; border-radius:8px; font-size:0.95rem; outline:none; }
     .file-select-btn { padding:8px 12px; background:#e7f5ff; border:1px solid #74c0fc; color:#1864ab; border-radius:8px; font-weight:bold; font-size:0.85rem; cursor:pointer; text-align:center; }
@@ -180,6 +188,7 @@
   <!-- 🎉 2. 登入成功歡迎動畫卡片 -->
   <div id="welcomeOverlay">
     <div class="welcome-card">
+      <!-- 1. 歡迎動畫內的頭像照片（綁定 圖 1 image1.jpg） -->
       <img id="welcomeAvatar" class="welcome-img">
       <div class="welcome-text">夫~歡迎回來 👋</div>
     </div>
@@ -391,8 +400,8 @@
     window.getDoc = getDoc;
     window.setDoc = setDoc;
 
-    // 🐶 使用完全內嵌式 SVG 繪製的可愛狗狗頭像，永遠不會失效不見！
-    const EMBEDDED_DOG_AVATAR = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='50' fill='%23f1f5f9'/><circle cx='50' cy='52' r='35' fill='%23ffffff' stroke='%23e2e8f0' stroke-width='2'/><path d='M 25 35 Q 18 15 35 22 Z' fill='%231e3a8a'/><path d='M 75 35 Q 82 15 65 22 Z' fill='%231e3a8a'/><rect x='28' y='18' width='44' height='12' rx='6' fill='%232563eb'/><circle cx='40' cy='45' r='4' fill='%231e293b'/><circle cx='60' cy='45' r='4' fill='%231e293b'/><ellipse cx='50' cy='55' rx='6' ry='5' fill='%230f172a'/><path d='M 45 62 Q 50 68 55 62' fill='none' stroke='%23334155' stroke-width='2.5' stroke-linecap='round'/><path d='M 47 64 Q 50 70 53 64' fill='%23f43f5e'/></svg>";
+    // 🐶 設定預設與歡迎動畫圖片為 圖 1 (image1.jpg 狗狗實體照片)
+    const DEFAULT_DOG_AVATAR = "image1.jpg";
 
     // Google 登入
     window.loginWithGoogle = async () => {
@@ -441,8 +450,8 @@
       const welcomeOverlay = document.getElementById("welcomeOverlay");
       const welcomeImg = document.getElementById("welcomeAvatar");
       
-      // 使用絕對不失效的內嵌狗狗圖片
-      welcomeImg.src = EMBEDDED_DOG_AVATAR;
+      // 動畫使用 圖 1 照片
+      welcomeImg.src = DEFAULT_DOG_AVATAR;
 
       welcomeOverlay.classList.add("show");
       setTimeout(() => {
@@ -475,13 +484,13 @@
       if (userSnap.exists()) {
         const data = userSnap.data();
         document.getElementById("userNameTxt").innerText = data.customName || user.displayName || "考生老友";
-        document.getElementById("userAvatarImg").src = data.customAvatar || EMBEDDED_DOG_AVATAR;
+        document.getElementById("userAvatarImg").src = data.customAvatar || DEFAULT_DOG_AVATAR;
       } else {
         const defaultName = user.displayName || "考生老友";
         document.getElementById("userNameTxt").innerText = defaultName;
-        document.getElementById("userAvatarImg").src = EMBEDDED_DOG_AVATAR;
+        document.getElementById("userAvatarImg").src = DEFAULT_DOG_AVATAR;
 
-        await setDoc(userRef, { customName: defaultName, customAvatar: EMBEDDED_DOG_AVATAR });
+        await setDoc(userRef, { customName: defaultName, customAvatar: DEFAULT_DOG_AVATAR });
       }
     }
 
