@@ -91,12 +91,14 @@
 
     /* 自由文字框 / 照片 / 手寫框 萬能容器 */
     .tree-box { position: absolute; min-width: 100px; min-height: 50px; background: #fff; border: 2px solid #007aff; border-radius: 8px; font-size: 0.85rem; z-index: 10; box-shadow: 0 3px 8px rgba(0,0,0,0.12); touch-action: none; resize: both; overflow: visible; display: inline-block; }
+    .tree-box.media-box { border-color: #6c757d; } /* 圖片/手寫框使用灰色邊框區隔 */
+    
     .box-drag-handle { background: #f0f4f8; height: 20px; cursor: move; border-top-left-radius: 6px; border-top-right-radius: 6px; border-bottom: 1px solid #e0e0e0; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #888; }
     .box-quick-del { position: absolute; top: -8px; right: -8px; width: 22px; height: 22px; background: #ff3b30; color: white; border-radius: 50%; font-size: 13px; font-weight: bold; line-height: 22px; text-align: center; cursor: pointer; z-index: 30; border: 1.5px solid #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
     .box-content { padding: 6px 10px; outline: none; cursor: text; min-height: 30px; }
     .box-img-content { width: 100%; height: calc(100% - 20px); object-fit: contain; display: block; border-bottom-left-radius: 6px; border-bottom-right-radius: 6px; }
 
-    /* 四向連接點 */
+    /* 四向連接點 (僅文字框擁有) */
     .conn-dot { position: absolute; width: 12px; height: 12px; background: #007aff; border: 2px solid #fff; border-radius: 50%; z-index: 25; cursor: crosshair; box-shadow: 0 0 3px rgba(0,0,0,0.3); transition: transform 0.15s; }
     .conn-dot:hover { transform: scale(1.4); background: #ff9500; }
     .conn-dot.top { top: -6px; left: 50%; transform: translateX(-50%); }
@@ -535,12 +537,11 @@
       e.target.value = '';
     }
 
-    /* 🔳 建立萬能文字/圖片框 (附帶四向連接點) */
+    /* 建立框體：僅文字框（text）附帶四向點點；照片/手寫（img）不加點點 */
     function createMediaBox(srcOrText, type = 'text') {
       const wrapper = document.getElementById('canvasWrapper');
       const boxId = "box_" + Date.now();
       const box = document.createElement('div');
-      box.className = 'tree-box';
       box.id = boxId;
       box.style.left = '40px';
       box.style.top = (80 + wrapper.scrollTop) + 'px';
@@ -548,27 +549,34 @@
       let inner = `
         <div class="box-quick-del" onclick="removeTreeBox('${boxId}')">✕</div>
         <div class="box-drag-handle">≡ 拖曳移動</div>
-        <div class="conn-dot top" data-pos="top"></div>
-        <div class="conn-dot bottom" data-pos="bottom"></div>
-        <div class="conn-dot left" data-pos="left"></div>
-        <div class="conn-dot right" data-pos="right"></div>
       `;
 
       if (type === 'img') {
+        box.className = 'tree-box media-box';
         box.style.width = '240px';
         box.style.height = '200px';
         inner += `<img src="${srcOrText}" class="box-img-content">`;
       } else {
+        // 純文字框：加上四向連接點
+        box.className = 'tree-box';
         box.style.width = '160px';
         box.style.height = '80px';
-        inner += `<div class="box-content" contenteditable="true">${srcOrText}</div>`;
+        inner += `
+          <div class="conn-dot top" data-pos="top"></div>
+          <div class="conn-dot bottom" data-pos="bottom"></div>
+          <div class="conn-dot left" data-pos="left"></div>
+          <div class="conn-dot right" data-pos="right"></div>
+          <div class="box-content" contenteditable="true">${srcOrText}</div>
+        `;
       }
 
       box.innerHTML = inner;
       wrapper.appendChild(box);
 
       initDragForBox(box);
-      initConnectorsForBox(box);
+      if (type === 'text') {
+        initConnectorsForBox(box);
+      }
       debouncedSave();
     }
 
@@ -683,7 +691,7 @@
         tempLine.remove();
         tempLine = null;
 
-        // 判斷是否落在某個點點上
+        // 判斷是否落在某個文字框的點點上
         const targetElement = document.elementFromPoint(clientX, clientY);
         if (targetElement && targetElement.classList.contains('conn-dot')) {
           const toBox = targetElement.closest('.tree-box');
@@ -725,13 +733,15 @@
 
     function renderLines() {
       const svg = document.getElementById('svgLayer');
-      // 清空舊線條（保留 marker 定義）
+      // 清空舊線條
       const lines = svg.querySelectorAll('line');
       lines.forEach(l => l.remove());
 
       activeLines.forEach(lineData => {
         const p1 = getDotCenter(lineData.fromBox, lineData.fromPos);
         const p2 = getDotCenter(lineData.toBox, lineData.toPos);
+
+        if (p1.x === 0 && p1.y === 0) return; // 若框體已被刪除則忽略
 
         const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
         line.setAttribute("x1", p1.x);
@@ -753,7 +763,9 @@
     function bindBoxEvents() {
       document.querySelectorAll('.tree-box').forEach(box => {
         initDragForBox(box);
-        initConnectorsForBox(box);
+        if (!box.classList.contains('media-box')) {
+          initConnectorsForBox(box);
+        }
       });
     }
 
