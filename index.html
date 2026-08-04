@@ -137,7 +137,9 @@
     .tree-box.media-box { border-color: #6c757d; }
     .box-drag-handle { background: #f0f4f8; height: 20px; cursor: move; border-top-left-radius: 6px; border-top-right-radius: 6px; border-bottom: 1px solid #e0e0e0; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #888; user-select: none; flex-shrink: 0; }
     .box-quick-del { position: absolute; top: -8px; right: -8px; width: 22px; height: 22px; background: #ff3b30; color: white; border-radius: 50%; font-size: 13px; font-weight: bold; line-height: 22px; text-align: center; cursor: pointer; z-index: 30; border: 1.5px solid #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
-    .box-content { padding: 6px 10px; outline: none; cursor: text; min-height: 30px; flex: 1; overflow: auto; }
+    .box-copy-btn { position: absolute; top: -8px; right: 18px; width: 22px; height: 22px; background: #007aff; color: white; border-radius: 50%; font-size: 12px; font-weight: bold; line-height: 22px; text-align: center; cursor: pointer; z-index: 30; border: 1.5px solid #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+    .box-content { padding: 6px 10px; outline: none; cursor: text; min-height: 30px; flex: 1; overflow: auto; text-align: left; }
+    .box-content:empty::before { content: "點擊輸入文字…"; color: #adb5bd; pointer-events: none; }
     .box-img-content { width: 100%; height: calc(100% - 20px); object-fit: contain; display: block; border-bottom-left-radius: 6px; border-bottom-right-radius: 6px; flex: 1; pointer-events: none; }
 
     .box-resize-handle { position: absolute; right: 0; bottom: 0; width: 16px; height: 16px; cursor: se-resize; z-index: 25; display: flex; align-items: center; justify-content: center; }
@@ -155,7 +157,7 @@
     .arrow-line:hover { stroke: #ff3b30; stroke-width: 4; }
 
     body.is-locked .tree-box { border-color: #adb5bd; }
-    body.is-locked .box-drag-handle, body.is-locked .box-quick-del, body.is-locked .box-resize-handle, body.is-locked .conn-dot { display: none !important; }
+    body.is-locked .box-drag-handle, body.is-locked .box-quick-del, body.is-locked .box-copy-btn, body.is-locked .box-resize-handle, body.is-locked .conn-dot { display: none !important; }
     body.is-locked .box-content { cursor: default; }
 
     #drawModal { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #fff; z-index: 2000; display: none; flex-direction: column; }
@@ -302,7 +304,7 @@
             <div class="color-btn color-blue" title="藍色" onmousedown="event.preventDefault(); applyTextColor('rgb(29, 93, 221)');"></div>
           </div>
 
-          <button class="tool-btn btn-primary" onmousedown="event.preventDefault(); insertTitleHeader();">⭐ 插入大標題</button>
+          <button class="tool-btn btn-primary" onmousedown="event.preventDefault(); insertTitleHeader();">⭐️ 插入大標題</button>
           <button class="tool-btn btn-callout" onmousedown="event.preventDefault(); insertCalloutBox();">💡 觀念提示框</button>
 
           <button class="tool-btn" style="font-weight:900;" onmousedown="event.preventDefault(); toggleBold();">B 粗體</button>
@@ -560,7 +562,7 @@
           { id: "c2", title: "第二章 現金與銀行調節表", content: "", lines: [] },
           { id: "c3", title: "第三章 應收款與客戶合約收入", content: "", lines: [] },
           { id: "c4", title: "第四章 買賣業會計與存貨", content: "", lines: [] },
-          { id: "c5", title: "第五章 不動產廠房及設備", content: "", lines: [] },
+          { id: "c5", title: "第五章 不動產廠房及設備(含折舊)", content: "", lines: [] },
           { id: "c6", title: "第六章 遞耗、無形與生物資產", content: "", lines: [] },
           { id: "c7", title: "第七章 流動負債與負債準備", content: "", lines: [] },
           { id: "c8", title: "第八章 金融負債與公司債", content: "", lines: [] },
@@ -819,37 +821,39 @@
       e.target.value = '';
     }
 
-    function createMediaBox(srcOrText, type = 'text') {
+    function createMediaBox(srcOrText, type = 'text', opts = {}) {
       const wrapper = document.getElementById('canvasWrapper');
-      const boxId = "box_" + Date.now();
+      const boxId = "box_" + Date.now() + "_" + Math.floor(Math.random() * 1000);
       const box = document.createElement('div');
       box.id = boxId;
-      box.style.left = '40px';
-      box.style.top = (80 + wrapper.scrollTop) + 'px';
+      box.style.left = (opts.left !== undefined ? opts.left : 40) + 'px';
+      box.style.top = (opts.top !== undefined ? opts.top : (80 + wrapper.scrollTop)) + 'px';
 
       let inner = `
         <div class="box-quick-del" onclick="removeTreeBox('${boxId}')">✕</div>
+        <div class="box-copy-btn" title="複製這個文字框" onclick="duplicateTreeBox('${boxId}')">⧉</div>
         <div class="box-drag-handle">≡ 拖曳移動</div>
       `;
 
       if (type === 'img') {
         box.className = 'tree-box media-box';
-        box.style.width = '240px';
-        box.style.height = '200px';
+        box.style.width = opts.width || '240px';
+        box.style.height = opts.height || '200px';
         inner += `
           <img src="${srcOrText}" class="box-img-content">
           <div class="box-resize-handle"></div>
         `;
       } else {
         box.className = 'tree-box';
-        box.style.width = '160px';
-        box.style.height = '80px';
+        box.style.width = opts.width || '160px';
+        box.style.height = opts.height || '80px';
         inner += `
           <div class="conn-dot top" data-pos="top"></div>
           <div class="conn-dot bottom" data-pos="bottom"></div>
           <div class="conn-dot left" data-pos="left"></div>
           <div class="conn-dot right" data-pos="right"></div>
           <div class="box-content" contenteditable="true">${srcOrText}</div>
+          <div class="box-resize-handle"></div>
         `;
       }
 
@@ -857,16 +861,39 @@
       wrapper.appendChild(box);
 
       initDragForBox(box);
-      if (type === 'img') {
-        initResizeForBox(box);
-      } else {
+      initResizeForBox(box);
+      if (type !== 'img') {
         initConnectorsForBox(box);
       }
       debouncedSave();
+      return box;
     }
 
     function addFreeBox() {
-      createMediaBox('點擊輸入重點...', 'text');
+      createMediaBox('', 'text');
+    }
+
+    // 📋 複製文字框：建立一個內容、大小都相同的新文字框（位置稍微偏移，避免完全重疊）
+    function duplicateTreeBox(boxId) {
+      if (isLocked) return;
+      const box = document.getElementById(boxId);
+      if (!box) return;
+
+      const isImg = box.classList.contains('media-box');
+      const type = isImg ? 'img' : 'text';
+      const content = isImg
+        ? box.querySelector('.box-img-content').src
+        : box.querySelector('.box-content').innerHTML;
+
+      const newLeft = (parseInt(box.style.left) || 0) + 24;
+      const newTop = (parseInt(box.style.top) || 0) + 24;
+
+      createMediaBox(content, type, {
+        width: box.style.width,
+        height: box.style.height,
+        left: newLeft,
+        top: newTop
+      });
     }
 
     function removeTreeBox(boxId) {
