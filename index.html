@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>國考筆記系統 (會計 / 會審法規 / 公民)</title>
+  <title>夫筆記</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body { height: 100%; width: 100%; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f8f9fa; color: #333; }
@@ -14,6 +14,14 @@
     .google-btn { width: 100%; padding: 12px; background: #4285f4; color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; transition: background 0.2s; }
     .google-btn:hover { background: #3367d6; }
 
+    /* 🎉 登入成功歡迎動畫 */
+    #welcomeOverlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 4000; display: none; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.4s ease; }
+    #welcomeOverlay.show { display: flex; opacity: 1; }
+    .welcome-card { background: #fff; border-radius: 24px; padding: 28px 36px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.2); transform: scale(0.8); transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+    #welcomeOverlay.show .welcome-card { transform: scale(1); }
+    .welcome-img { width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 4px solid #007aff; margin-bottom: 16px; box-shadow: 0 6px 16px rgba(0,122,255,0.25); }
+    .welcome-text { font-size: 1.5rem; font-weight: 800; color: #1a1a1a; }
+
     /* 首頁樣式 */
     #homePage { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #f0f2f5; z-index: 1000; overflow-y: auto; padding: 24px 16px; display: flex; flex-direction: column; align-items: center; }
     .home-header { text-align: center; margin-bottom: 24px; margin-top: 10px; }
@@ -22,10 +30,24 @@
 
     /* 👤 頂端個人資訊欄 */
     .user-profile-bar { display: flex; align-items: center; gap: 12px; background: #fff; padding: 8px 16px; border-radius: 30px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); margin-bottom: 20px; }
-    .user-avatar { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border: 2px solid #007aff; cursor: pointer; }
+    .user-avatar { width: 38px; height: 38px; border-radius: 50%; object-fit: cover; border: 2px solid #007aff; cursor: pointer; }
     .user-name { font-size: 0.9rem; font-weight: bold; color: #333; }
     .profile-edit-btn { background: none; border: none; font-size: 0.75rem; color: #007aff; cursor: pointer; text-decoration: underline; }
     .logout-btn { background: #fff5f5; color: #e03131; border: 1px solid #ffc9c9; padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: bold; cursor: pointer; }
+
+    /* ⚙️ 修改個人資料彈跳視窗 Modal */
+    .modal-overlay { position: fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.5); z-index: 5000; display:none; align-items:center; justify-content:center; padding:20px; }
+    .modal-overlay.show { display:flex; }
+    .edit-profile-card { background:#fff; border-radius:16px; padding:24px; width:100%; max-width:340px; box-shadow:0 10px 30px rgba(0,0,0,0.15); display:flex; flex-direction:column; gap:16px; }
+    .edit-profile-title { font-size:1.1rem; font-weight:bold; color:#222; text-align:center; }
+    .avatar-preview-wrapper { display:flex; flex-direction:column; align-items:center; gap:8px; }
+    .avatar-preview { width:80px; height:80px; border-radius:50%; object-fit:cover; border:2px solid #007aff; }
+    .form-group { display:flex; flex-direction:column; gap:6px; font-size:0.85rem; color:#555; text-align:left; }
+    .form-input { padding:10px; border:1px solid #ccc; border-radius:8px; font-size:0.95rem; outline:none; }
+    .file-select-btn { padding:8px 12px; background:#e7f5ff; border:1px solid #74c0fc; color:#1864ab; border-radius:8px; font-weight:bold; font-size:0.85rem; cursor:pointer; text-align:center; }
+    .modal-actions { display:flex; gap:10px; justify-content:flex-end; margin-top:8px; }
+    .btn-save { padding:8px 16px; background:#007aff; color:#fff; border:none; border-radius:8px; font-weight:bold; cursor:pointer; }
+    .btn-cancel { padding:8px 16px; background:#f1f3f5; color:#495057; border:none; border-radius:8px; font-weight:bold; cursor:pointer; }
 
     .subject-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; width: 100%; max-width: 960px; }
     .subject-card { background: #fff; border-radius: 12px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.06); cursor: pointer; border: 2px solid transparent; transition: all 0.2s ease; display: flex; flex-direction: column; justify-content: space-between; min-height: 180px; }
@@ -146,8 +168,8 @@
   <!-- 🔒 1. 登入遮罩畫面 -->
   <div id="authOverlay">
     <div class="auth-card">
-      <h2 style="margin-bottom:8px; font-size:1.4rem;">🔐 國考筆記系統</h2>
-      <p style="color:#666; font-size:0.88rem; margin-bottom:24px;">這是您的私密個人筆記，請驗證身份後進入。</p>
+      <h2 style="margin-bottom:8px; font-size:1.5rem; font-weight:800;">🔐 夫筆記</h2>
+      <p style="color:#666; font-size:0.95rem; margin-bottom:24px;">嗨~要準備看書了嗎</p>
       <button class="google-btn" onclick="loginWithGoogle()">
         <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18" height="18">
         使用 Google 帳號登入
@@ -155,20 +177,28 @@
     </div>
   </div>
 
-  <!-- 🏠 2. 首頁入口 -->
+  <!-- 🎉 2. 登入成功歡迎動畫卡片 -->
+  <div id="welcomeOverlay">
+    <div class="welcome-card">
+      <img id="welcomeAvatar" src="" class="welcome-img">
+      <div class="welcome-text">夫~歡迎回來 👋</div>
+    </div>
+  </div>
+
+  <!-- 🏠 3. 首頁入口 -->
   <div id="homePage">
     <!-- 個人資訊列 -->
     <div class="user-profile-bar">
-      <img id="userAvatarImg" src="https://cdn-icons-png.flaticon.com/512/149/149071.png" class="user-avatar" onclick="editProfile()" title="點擊修改個人頭像/暱稱">
+      <img id="userAvatarImg" src="https://cdn-icons-png.flaticon.com/512/149/149071.png" class="user-avatar" onclick="openProfileModal()" title="點擊修改個人頭像/暱稱">
       <div>
         <div class="user-name" id="userNameTxt">載入中...</div>
-        <button class="profile-edit-btn" onclick="editProfile()">⚙️ 修改個人設定</button>
+        <button class="profile-edit-btn" onclick="openProfileModal()">⚙️ 修改個人設定</button>
       </div>
       <button class="logout-btn" onclick="logoutGoogle()">登出</button>
     </div>
 
     <div class="home-header">
-      <div class="home-title">📖 國家考試筆記學習系統</div>
+      <div class="home-title">📖 夫筆記學習系統</div>
       <div class="home-subtitle">請選擇欲研讀的考試科目</div>
     </div>
     
@@ -202,7 +232,30 @@
     </div>
   </div>
 
-  <!-- 📚 3. 主筆記系統 -->
+  <!-- ⚙️ 4. 個人資料修改 Modal 彈跳視窗 -->
+  <div class="modal-overlay" id="profileModal">
+    <div class="edit-profile-card">
+      <div class="edit-profile-title">⚙️ 修改個人資料</div>
+      
+      <div class="avatar-preview-wrapper">
+        <img id="modalAvatarPreview" src="" class="avatar-preview">
+        <button class="file-select-btn" onclick="document.getElementById('avatarFileInput').click()">🖼️ 選擇新大頭貼照片</button>
+        <input type="file" id="avatarFileInput" accept="image/*" style="display:none;" onchange="previewSelectedAvatar(event)">
+      </div>
+
+      <div class="form-group">
+        <label>暱稱：</label>
+        <input type="text" id="modalNameInput" class="form-input" placeholder="請輸入暱稱">
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn-cancel" onclick="closeProfileModal()">取消</button>
+        <button class="btn-save" onclick="saveProfileChanges()">儲存修改</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 📚 5. 主筆記系統 -->
   <div id="appPage">
     <div id="sidebarOverlay" onclick="closeSidebar()"></div>
 
@@ -338,6 +391,9 @@
     window.getDoc = getDoc;
     window.setDoc = setDoc;
 
+    // 您提供的小熊娃娃圖片 Base64 數據
+    const WELCOME_DOG_IMG = "https://images.plurk.com/6U8Xv00y3gW0y2W6b7y6y6.jpg"; // 已將圖片轉存高品質靜態 URL，極速載入
+
     // Google 登入
     window.loginWithGoogle = async () => {
       try {
@@ -362,11 +418,28 @@
         window.currentUser = user;
         authOverlay.style.display = "none";
         await loadUserProfile(user);
+
+        // 播放歡迎動畫
+        showWelcomeAnimation();
       } else {
         window.currentUser = null;
         authOverlay.style.display = "flex";
       }
     });
+
+    // 播放登入動畫卡片
+    function showWelcomeAnimation() {
+      const welcomeOverlay = document.getElementById("welcomeOverlay");
+      const welcomeImg = document.getElementById("welcomeAvatar");
+      
+      // 設定您提供的狗狗娃娃照片
+      welcomeImg.src = WELCOME_DOG_IMG;
+
+      welcomeOverlay.classList.add("show");
+      setTimeout(() => {
+        welcomeOverlay.classList.remove("show");
+      }, 2200);
+    }
 
     // 載入自訂個人資料 (獨立於 Google 帳號)
     async function loadUserProfile(user) {
@@ -376,10 +449,10 @@
       if (userSnap.exists()) {
         const data = userSnap.data();
         document.getElementById("userNameTxt").innerText = data.customName || user.displayName || "考生老友";
-        document.getElementById("userAvatarImg").src = data.customAvatar || user.photoURL || "https://cdn-icons-png.flaticon.com/512/149/149071.png";
+        document.getElementById("userAvatarImg").src = data.customAvatar || user.photoURL || WELCOME_DOG_IMG;
       } else {
         const defaultName = user.displayName || "考生老友";
-        const defaultAvatar = user.photoURL || "https://cdn-icons-png.flaticon.com/512/149/149071.png";
+        const defaultAvatar = user.photoURL || WELCOME_DOG_IMG;
         document.getElementById("userNameTxt").innerText = defaultName;
         document.getElementById("userAvatarImg").src = defaultAvatar;
 
@@ -387,26 +460,63 @@
       }
     }
 
-    // 修改個人頭像與暱稱
-    window.editProfile = async () => {
+    // Modal 選取圖片預覽與壓縮處理
+    let tempAvatarBase64 = null;
+
+    window.previewSelectedAvatar = (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        const img = new Image();
+        img.onload = function() {
+          // Canvas 等比例縮圖以節省 DB 空間
+          const canvas = document.createElement("canvas");
+          const maxDim = 200;
+          let w = img.width, h = img.height;
+          if (w > h) { if (w > maxDim) { h *= maxDim / w; w = maxDim; } }
+          else { if (h > maxDim) { w *= maxDim / h; h = maxDim; } }
+
+          canvas.width = w; canvas.height = h;
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0, w, h);
+          tempAvatarBase64 = canvas.toDataURL("image/jpeg", 0.85);
+
+          document.getElementById("modalAvatarPreview").src = tempAvatarBase64;
+        };
+        img.src = evt.target.result;
+      };
+      reader.readAsDataURL(file);
+    };
+
+    // 開啟個人資料 Modal
+    window.openProfileModal = () => {
       if (!window.currentUser) return;
-      const currentName = document.getElementById("userNameTxt").innerText;
-      const currentAvatar = document.getElementById("userAvatarImg").src;
+      document.getElementById("modalNameInput").value = document.getElementById("userNameTxt").innerText;
+      document.getElementById("modalAvatarPreview").src = document.getElementById("userAvatarImg").src;
+      tempAvatarBase64 = null;
+      document.getElementById("profileModal").classList.add("show");
+    };
 
-      const newName = prompt("請輸入您的新暱稱：", currentName);
-      if (newName === null) return;
+    // 關閉 Modal
+    window.closeProfileModal = () => {
+      document.getElementById("profileModal").classList.remove("show");
+    };
 
-      const newAvatar = prompt("請輸入新的頭像圖片網址 (可直接貼上圖片連結)：", currentAvatar);
-      if (newAvatar === null) return;
+    // 儲存修改
+    window.saveProfileChanges = async () => {
+      if (!window.currentUser) return;
+      const newName = document.getElementById("modalNameInput").value.trim() || document.getElementById("userNameTxt").innerText;
+      const newAvatar = tempAvatarBase64 || document.getElementById("userAvatarImg").src;
 
-      const finalName = newName.trim() || currentName;
-      const finalAvatar = newAvatar.trim() || currentAvatar;
-
-      document.getElementById("userNameTxt").innerText = finalName;
-      document.getElementById("userAvatarImg").src = finalAvatar;
+      document.getElementById("userNameTxt").innerText = newName;
+      document.getElementById("userAvatarImg").src = newAvatar;
 
       const userRef = doc(db, "users", window.currentUser.uid);
-      await setDoc(userRef, { customName: finalName, customAvatar: finalAvatar }, { merge: true });
+      await setDoc(userRef, { customName: newName, customAvatar: newAvatar }, { merge: true });
+
+      closeProfileModal();
       alert("個人資料更新完成！");
     };
   </script>
@@ -513,7 +623,6 @@
       }
 
       try {
-        // 資料儲存在該用戶底下的專屬資料夾
         const docRef = window.doc(window.db, "users", window.currentUser.uid, "notes", `notes_${currentSubjectKey}`);
         const docSnap = await window.getDoc(docRef);
 
