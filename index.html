@@ -190,7 +190,7 @@
     <div class="welcome-card">
       <!-- 1. 歡迎動畫內的頭像照片（綁定 圖 1 image1.jpg） -->
       <img id="welcomeAvatar" class="welcome-img">
-      <div class="welcome-text">夫~歡迎回來 👋</div>
+      <div class="welcome-text">夫~歡迎回來 🐶</div>
     </div>
   </div>
 
@@ -780,7 +780,7 @@
       const selection = window.getSelection();
       const selectedText = selection.toString().trim() || "會計科目辨認";
       
-      const headerHtml = `<div class="note-section-title">📌 ${selectedText}</div><p><br></p>`;
+      const headerHtml = `<div class="note-section-title">⭐️ ${selectedText}</div><p><br></p>`;
       document.execCommand('insertHTML', false, headerHtml);
       debouncedSave();
     }
