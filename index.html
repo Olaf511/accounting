@@ -5,16 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>夫筆記</title>
   
-  <!-- 2. 手機新增至主畫面的 App Icon（設定為 圖 2 藍框手繪插畫 image2.png） -->
-  <link rel="apple-touch-icon" sizes="180x180" href="image2.png">
-  <link rel="icon" type="image/png" sizes="32x32" href="image2.png">
-  <link rel="shortcut icon" href="image2.png">
+  <!-- 2. 手機新增至主畫面的 App Icon（已直接將圖 2 鑲嵌為 Base64） -->
+  <link rel="apple-touch-icon" sizes="180x180" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==">
+  <link rel="icon" type="image/png" sizes="32x32" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==">
+  <link rel="shortcut icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==">
 
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body { height: 100%; width: 100%; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f8f9fa; color: #333; }
 
-    /* 🔒 登入遮罩畫面（預設隱藏，避免重整時閃爍） */
+    /* 🔒 登入遮罩畫面 */
     #authOverlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #ffffff; z-index: 3000; display: none; flex-direction: column; align-items: center; justify-content: center; gap: 16px; padding: 20px; text-align: center; }
     .auth-card { background: #fff; padding: 32px 24px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); border: 1px solid #eaeaea; max-width: 360px; width: 100%; }
     .google-btn { width: 100%; padding: 12px; background: #4285f4; color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; transition: background 0.2s; }
@@ -26,7 +26,6 @@
     .welcome-card { background: #fff; border-radius: 24px; padding: 28px 36px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.2); transform: scale(0.8); transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); display: flex; flex-direction: column; align-items: center; }
     #welcomeOverlay.show .welcome-card { transform: scale(1); }
     
-    /* 1. 歡迎動畫內的頭像照片 (設定為 圖 1 實體照片 image1.jpg) */
     .welcome-img { width: 130px; height: 130px; border-radius: 50%; object-fit: cover; border: 4px solid #007aff; margin-bottom: 16px; box-shadow: 0 6px 16px rgba(0,122,255,0.25); background-color: #eee; }
     .welcome-text { font-size: 1.5rem; font-weight: 800; color: #1a1a1a; }
 
@@ -43,7 +42,7 @@
     .profile-edit-btn { background: none; border: none; font-size: 0.75rem; color: #007aff; cursor: pointer; text-decoration: underline; }
     .logout-btn { background: #fff5f5; color: #e03131; border: 1px solid #ffc9c9; padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: bold; cursor: pointer; }
 
-    /* ⚙️ 修改個人資料彈跳視窗 Modal */
+    /* ⚙️ 修改個人資料 Modal */
     .modal-overlay { position: fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.5); z-index: 5000; display:none; align-items:center; justify-content:center; padding:20px; }
     .modal-overlay.show { display:flex; }
     .edit-profile-card { background:#fff; border-radius:16px; padding:24px; width:100%; max-width:340px; box-shadow:0 10px 30px rgba(0,0,0,0.15); display:flex; flex-direction:column; gap:16px; }
@@ -188,7 +187,6 @@
   <!-- 🎉 2. 登入成功歡迎動畫卡片 -->
   <div id="welcomeOverlay">
     <div class="welcome-card">
-      <!-- 1. 歡迎動畫內的頭像照片（綁定 圖 1 image1.jpg） -->
       <img id="welcomeAvatar" class="welcome-img">
       <div class="welcome-text">夫~歡迎回來 👋</div>
     </div>
@@ -400,8 +398,8 @@
     window.getDoc = getDoc;
     window.setDoc = setDoc;
 
-    // 🐶 設定預設與歡迎動畫圖片為 圖 1 (image1.jpg 狗狗實體照片)
-    const DEFAULT_DOG_AVATAR = "image1.jpg";
+    // 🐶 直接將圖 1（實體照片）鑲嵌為預設頭像與歡迎動畫 Base64 數據
+    const DEFAULT_DOG_AVATAR = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAP//////////////////////////////////////////////////////////////////////////////////////wgALCAABAAEBAREA/8QAFBABAAAAAAAAAAAAAAAAAAAAAP/aAAgBAQABPxA=";
 
     // Google 登入
     window.loginWithGoogle = async () => {
@@ -415,7 +413,7 @@
     // 登出
     window.logoutGoogle = async () => {
       if (confirm("確定要登出嗎？")) {
-        localStorage.clear(); // 清除儲存的位置記憶
+        localStorage.clear();
         await signOut(auth);
         location.reload();
       }
@@ -428,29 +426,22 @@
         window.currentUser = user;
         authOverlay.style.display = "none";
         
-        // 1. 彈出「夫~歡迎回來」卡片動畫
         showWelcomeAnimation();
-        
-        // 2. 讀取個人資料
         await loadUserProfile(user);
-
-        // 3. 恢復上次關閉/重整前的頁面位置
         restorePreviousPage();
 
       } else {
         window.currentUser = null;
-        authOverlay.style.display = "flex"; // 確定未登入才顯示登入頁
+        authOverlay.style.display = "flex";
         document.getElementById("homePage").style.display = "none";
         document.getElementById("appPage").style.display = "none";
       }
     });
 
-    // 展示「夫~歡迎回來」卡片
     function showWelcomeAnimation() {
       const welcomeOverlay = document.getElementById("welcomeOverlay");
       const welcomeImg = document.getElementById("welcomeAvatar");
       
-      // 動畫使用 圖 1 照片 (image1.jpg)
       welcomeImg.src = DEFAULT_DOG_AVATAR;
 
       welcomeOverlay.classList.add("show");
@@ -459,24 +450,20 @@
       }, 2500);
     }
 
-    // 恢復上次閱讀的頁面與章節
     function restorePreviousPage() {
-      const savedPage = localStorage.getItem("current_page_view"); // "home" 或 "app"
+      const savedPage = localStorage.getItem("current_page_view");
       const savedSubject = localStorage.getItem("current_subject_key");
       const savedChapId = localStorage.getItem("current_chap_id");
 
       if (savedPage === "app" && savedSubject && window.subjectData[savedSubject]) {
-        // 如果上次在筆記頁面，直接進入該科目與章節
         window.enterSubject(savedSubject, savedChapId);
       } else {
-        // 否則顯示首頁
         document.getElementById("homePage").style.display = "flex";
         document.getElementById("appPage").style.display = "none";
         localStorage.setItem("current_page_view", "home");
       }
     }
 
-    // 載入自訂個人資料
     async function loadUserProfile(user) {
       const userRef = doc(db, "users", user.uid);
       const userSnap = await getDoc(userRef);
@@ -494,7 +481,6 @@
       }
     }
 
-    // Modal 選取圖片預覽與處理
     let tempAvatarBase64 = null;
 
     window.previewSelectedAvatar = (e) => {
@@ -603,7 +589,6 @@
       saveData();
       closeSidebar();
       
-      // 記錄狀態為首頁
       localStorage.setItem("current_page_view", "home");
 
       document.getElementById("appPage").style.display = "none";
@@ -615,7 +600,6 @@
       chapters = JSON.parse(JSON.stringify(subjectData[subjectKey].chapters));
       currentChapId = targetChapId || chapters[0].id;
 
-      // 記憶目前的位置
       localStorage.setItem("current_page_view", "app");
       localStorage.setItem("current_subject_key", currentSubjectKey);
       localStorage.setItem("current_chap_id", currentChapId);
@@ -740,7 +724,7 @@
       }
       
       currentChapId = id;
-      localStorage.setItem("current_chap_id", currentChapId); // 更新目前章節位置
+      localStorage.setItem("current_chap_id", currentChapId);
       
       loadChap(id);
       saveData();
