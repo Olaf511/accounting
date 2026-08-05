@@ -176,7 +176,7 @@
     }
   </style>
 </head>
-<body onclick="hideContextMenu()">
+<body class="is-locked" onclick="hideContextMenu()">
 
   <!-- 🔒 1. 登入遮罩畫面 -->
   <div id="authOverlay">
@@ -295,7 +295,7 @@
           </div>
           
           <div style="display:flex; align-items:center; gap:8px;">
-            <button class="lock-btn" id="lockToggleBtn" onclick="toggleLockMode()" title="切換鎖定/編輯模式">🔓</button>
+            <button class="lock-btn locked" id="lockToggleBtn" onclick="toggleLockMode()" title="切換鎖定/編輯模式">🔒</button>
             <span class="sync-status" id="syncStatus">⏳ 連線中...</span>
           </div>
         </div>
@@ -338,7 +338,7 @@
           </defs>
         </svg>
 
-        <div id="noteViewer" contenteditable="true" oninput="debouncedSave()" oncontextmenu="handleRightClick(event)" onkeydown="handleNoteKeydown(event)"></div>
+        <div id="noteViewer" contenteditable="false" oninput="debouncedSave()" oncontextmenu="handleRightClick(event)" onkeydown="handleNoteKeydown(event)"></div>
       </div>
     </div>
   </div>
@@ -600,7 +600,7 @@
     let isCloudLoaded = false;
     let lastCellContext = null;
 
-    let isLocked = false;
+    let isLocked = true;
     let activeLines = [];
 
     function goHome() {
@@ -629,12 +629,15 @@
       document.getElementById("homePage").style.display = "none";
       document.getElementById("appPage").style.display = "flex";
 
+      // 每次進入科目頁面預設先鎖住，避免不小心誤觸編輯到內容
+      isLocked = true;
+      applyLockUI();
+
       initFirebaseData();
     }
     window.enterSubject = enterSubject;
 
-    function toggleLockMode() {
-      isLocked = !isLocked;
+    function applyLockUI() {
       const btn = document.getElementById("lockToggleBtn");
       const noteViewer = document.getElementById("noteViewer");
 
@@ -649,6 +652,11 @@
         document.body.classList.remove("is-locked");
         noteViewer.contentEditable = "true";
       }
+    }
+
+    function toggleLockMode() {
+      isLocked = !isLocked;
+      applyLockUI();
     }
 
     async function initFirebaseData() {
