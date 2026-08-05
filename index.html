@@ -338,7 +338,7 @@
           </defs>
         </svg>
 
-        <div id="noteViewer" contenteditable="true" oninput="debouncedSave()" oncontextmenu="handleRightClick(event)"></div>
+        <div id="noteViewer" contenteditable="true" oninput="debouncedSave()" oncontextmenu="handleRightClick(event)" onkeydown="handleNoteKeydown(event)"></div>
       </div>
     </div>
   </div>
@@ -675,7 +675,7 @@
           const cloudData = docSnap.data().chapters;
           chapters = subjectData[currentSubjectKey].chapters.map(chap => {
             const match = cloudData.find(c => c.id === chap.id || c.title === chap.title);
-            return match ? { ...chap, content: match.content || "", lines: match.lines || [] } : chap;
+            return match ? { ...chap, content: match.content || "", lines: match.lines || [], boxes: match.boxes || [] } : chap;
           });
         } else {
           await window.setDoc(docRef, { chapters });
@@ -706,6 +706,7 @@
       if (chap) {
         chap.content = document.getElementById("noteViewer").innerHTML;
         chap.lines = activeLines;
+        chap.boxes = captureBoxesFromDOM();
       }
 
       if (window.db && isCloudLoaded && window.currentUser) {
@@ -741,6 +742,7 @@
       if (chap) {
         chap.content = document.getElementById("noteViewer").innerHTML;
         chap.lines = activeLines;
+        chap.boxes = captureBoxesFromDOM();
       }
       
       currentChapId = id;
@@ -756,20 +758,60 @@
         const viewer = document.getElementById("noteViewer");
         viewer.innerHTML = chap.content || "";
         activeLines = chap.lines || [];
-        
+
         document.getElementById("subTitle").innerText = subjectData[currentSubjectKey].name;
         document.getElementById("mainTitle").innerText = chap.title;
-        
-        bindBoxEvents();
+
+        clearBoxesFromDOM();
+        restoreBoxesToDOM(chap.boxes || []);
         renderLines();
       }
       renderSidebar();
+    }
+
+    // 🔳 把目前畫面上所有文字框/圖片框的內容、位置、大小整理成可以存檔的資料
+    function captureBoxesFromDOM() {
+      const wrapper = document.getElementById('canvasWrapper');
+      return Array.from(wrapper.querySelectorAll('.tree-box')).map(box => {
+        const isImg = box.classList.contains('media-box');
+        return {
+          id: box.id,
+          type: isImg ? 'img' : 'text',
+          content: isImg
+            ? (box.querySelector('.box-img-content') ? box.querySelector('.box-img-content').src : '')
+            : (box.querySelector('.box-content') ? box.querySelector('.box-content').innerHTML : ''),
+          left: parseInt(box.style.left) || 0,
+          top: parseInt(box.style.top) || 0,
+          width: box.style.width,
+          height: box.style.height
+        };
+      });
+    }
+
+    // 🧹 清掉畫面上目前的文字框/圖片框（換章節前先清空，避免上一章的框跑到這一章）
+    function clearBoxesFromDOM() {
+      document.querySelectorAll('#canvasWrapper .tree-box').forEach(box => box.remove());
+    }
+
+    // ♻️ 依照存檔資料，把文字框/圖片框還原到畫面上（保留原本的 id，箭頭連線才能對得上）
+    function restoreBoxesToDOM(boxesArr) {
+      boxesArr.forEach(b => {
+        createMediaBox(b.content, b.type, {
+          id: b.id,
+          left: b.left,
+          top: b.top,
+          width: b.width,
+          height: b.height,
+          skipSave: true
+        });
+      });
     }
 
     function resetCurrentChapter() {
       if (confirm(`確定要清空「${getChapObj(currentChapId).title}」的所有內容嗎？`)) {
         document.getElementById("noteViewer").innerHTML = "";
         activeLines = [];
+        clearBoxesFromDOM();
         renderLines();
         saveData();
       }
@@ -783,9 +825,53 @@
       if (isLocked) return;
       const selection = window.getSelection();
       const selectedText = selection.toString().trim() || "會計科目辨認";
-      
-      const headerHtml = `<div class="note-section-title">⭐️ ${selectedText}</div><p><br></p>`;
+
+      const markerId = 'title-caret-' + Date.now();
+      const headerHtml = `<div class="note-section-title">⭐️ ${selectedText}</div><p id="${markerId}"><br></p>`;
       document.execCommand('insertHTML', false, headerHtml);
+
+      // 明確把游標移到新插入的空白行，避免瀏覽器把游標留在標題那一行裡，
+      // 導致按 Enter 時把標題的樣式（含下方藍線）複製出第二條線
+      const marker = document.getElementById(markerId);
+      if (marker) {
+        marker.removeAttribute('id');
+        const range = document.createRange();
+        range.selectNodeContents(marker);
+        range.collapse(true);
+        const sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(range);
+      }
+
+      debouncedSave();
+    }
+
+    // ⭐️ 不管游標怎麼跑進標題那一行，只要在標題裡按 Enter，一律換成插入一行「一般段落」，
+    // 避免瀏覽器把標題自帶的藍色底線樣式也一起複製到下一行，變成兩條線
+    function handleNoteKeydown(e) {
+      if (e.key !== 'Enter' || e.shiftKey) return;
+      const sel = window.getSelection();
+      if (!sel.rangeCount) return;
+      const range = sel.getRangeAt(0);
+      if (!range.collapsed) return;
+
+      const node = range.startContainer;
+      const titleEl = (node.nodeType === Node.ELEMENT_NODE ? node : node.parentElement)
+        ? (node.nodeType === Node.ELEMENT_NODE ? node : node.parentElement).closest('.note-section-title')
+        : null;
+      if (!titleEl) return;
+
+      e.preventDefault();
+      const p = document.createElement('p');
+      p.innerHTML = '<br>';
+      titleEl.insertAdjacentElement('afterend', p);
+
+      const newRange = document.createRange();
+      newRange.selectNodeContents(p);
+      newRange.collapse(true);
+      sel.removeAllRanges();
+      sel.addRange(newRange);
+
       debouncedSave();
     }
 
@@ -825,7 +911,7 @@
 
     function createMediaBox(srcOrText, type = 'text', opts = {}) {
       const wrapper = document.getElementById('canvasWrapper');
-      const boxId = "box_" + Date.now() + "_" + Math.floor(Math.random() * 1000);
+      const boxId = opts.id || ("box_" + Date.now() + "_" + Math.floor(Math.random() * 1000));
       const box = document.createElement('div');
       box.id = boxId;
       box.style.left = (opts.left !== undefined ? opts.left : 40) + 'px';
@@ -854,7 +940,7 @@
           <div class="conn-dot bottom" data-pos="bottom"></div>
           <div class="conn-dot left" data-pos="left"></div>
           <div class="conn-dot right" data-pos="right"></div>
-          <div class="box-content" contenteditable="true">${srcOrText}</div>
+          <div class="box-content" contenteditable="true" oninput="debouncedSave()">${srcOrText}</div>
           <div class="box-resize-handle"></div>
         `;
       }
@@ -867,7 +953,7 @@
       if (type !== 'img') {
         initConnectorsForBox(box);
       }
-      debouncedSave();
+      if (!opts.skipSave) debouncedSave();
       return box;
     }
 
