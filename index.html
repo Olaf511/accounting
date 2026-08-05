@@ -1168,16 +1168,37 @@
     function getDotCenter(boxId, pos) {
       const box = document.getElementById(boxId);
       if (!box) return { x: 0, y: 0 };
-      const dot = box.querySelector(`.conn-dot.${pos}`);
-      if (!dot) return { x: 0, y: 0 };
 
+      // 改成直接用框框本身的位置計算連接點，不要依賴 conn-dot 這個小圓點的座標——
+      // 因為鎖定模式下 conn-dot 會被 CSS 設成 display:none，量出來的座標永遠是 0，
+      // 導致箭頭在鎖定狀態（也就是預設剛整理完頁面時）完全畫不出來。
       const svgRect = document.getElementById('svgLayer').getBoundingClientRect();
-      const dotRect = dot.getBoundingClientRect();
+      const boxRect = box.getBoundingClientRect();
 
-      return {
-        x: dotRect.left + dotRect.width / 2 - svgRect.left,
-        y: dotRect.top + dotRect.height / 2 - svgRect.top
-      };
+      let x, y;
+      switch (pos) {
+        case 'top':
+          x = boxRect.left + boxRect.width / 2;
+          y = boxRect.top;
+          break;
+        case 'bottom':
+          x = boxRect.left + boxRect.width / 2;
+          y = boxRect.bottom;
+          break;
+        case 'left':
+          x = boxRect.left;
+          y = boxRect.top + boxRect.height / 2;
+          break;
+        case 'right':
+          x = boxRect.right;
+          y = boxRect.top + boxRect.height / 2;
+          break;
+        default:
+          x = boxRect.left + boxRect.width / 2;
+          y = boxRect.top + boxRect.height / 2;
+      }
+
+      return { x: x - svgRect.left, y: y - svgRect.top };
     }
 
     function renderLines() {
