@@ -153,11 +153,9 @@
     .conn-dot.right { right: -6px; top: 50%; transform: translateY(-50%); }
 
     #svgLayer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 15; }
-    .arrow-line { stroke: #007aff; stroke-width: 2.5; marker-end: url(#arrowHead); pointer-events: stroke; cursor: pointer; }
+    .arrow-line { stroke: #007aff; stroke-width: 2.5; pointer-events: stroke; cursor: pointer; }
     .arrow-line:hover { stroke: #ff3b30; stroke-width: 4; }
-    .arrow-marker-path { fill: #007aff; }
     body.is-locked .arrow-line { stroke: #adb5bd; }
-    body.is-locked .arrow-marker-path { fill: #adb5bd; }
 
     body.is-locked .tree-box { border-color: #adb5bd; pointer-events: none; }
     body.is-locked .box-drag-handle, body.is-locked .box-quick-del, body.is-locked .box-copy-btn, body.is-locked .box-resize-handle, body.is-locked .conn-dot { display: none !important; }
@@ -330,13 +328,7 @@
       </div>
 
       <div class="editor-wrapper" id="canvasWrapper">
-        <svg id="svgLayer">
-          <defs>
-            <marker id="arrowHead" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-              <path d="M 0 0 L 10 5 L 0 10 z" class="arrow-marker-path" />
-            </marker>
-          </defs>
-        </svg>
+        <svg id="svgLayer"></svg>
 
         <div id="noteViewer" contenteditable="false" oninput="debouncedSave()" oncontextmenu="handleRightClick(event)" onkeydown="handleNoteKeydown(event)"></div>
       </div>
