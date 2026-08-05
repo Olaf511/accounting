@@ -155,6 +155,9 @@
     #svgLayer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 15; }
     .arrow-line { stroke: #007aff; stroke-width: 2.5; marker-end: url(#arrowHead); pointer-events: stroke; cursor: pointer; }
     .arrow-line:hover { stroke: #ff3b30; stroke-width: 4; }
+    .arrow-marker-path { fill: #007aff; }
+    body.is-locked .arrow-line { stroke: #adb5bd; }
+    body.is-locked .arrow-marker-path { fill: #adb5bd; }
 
     body.is-locked .tree-box { border-color: #adb5bd; pointer-events: none; }
     body.is-locked .box-drag-handle, body.is-locked .box-quick-del, body.is-locked .box-copy-btn, body.is-locked .box-resize-handle, body.is-locked .conn-dot { display: none !important; }
@@ -304,11 +307,10 @@
             <div class="color-btn color-blue" title="藍色" onmousedown="event.preventDefault(); applyTextColor('rgb(29, 93, 221)');"></div>
           </div>
 
-          <button class="tool-btn btn-primary" onmousedown="event.preventDefault(); insertTitleHeader();">⭐️ 插入大標題</button>
-          <button class="tool-btn btn-callout" onmousedown="event.preventDefault(); insertCalloutBox();">💡 觀念提示框</button>
-
-          <button class="tool-btn" style="font-weight:900;" onmousedown="event.preventDefault(); toggleBold();">B 粗體</button>
           <button class="tool-btn btn-hl" onmousedown="event.preventDefault(); applyHighlight('#ffec99');">🖍️ 螢光筆</button>
+          <button class="tool-btn" style="font-weight:900;" onmousedown="event.preventDefault(); toggleBold();">B 粗體</button>
+          <button class="tool-btn btn-primary" onmousedown="event.preventDefault(); insertTitleHeader();">⭐️ 插入大標題</button>
+
           <button class="tool-btn btn-clear" onmousedown="event.preventDefault(); clearFormatting();">🧹 清除格式</button>
           
           <button class="tool-btn btn-photo" onclick="triggerCameraInput()">📷 拍照/照片</button>
@@ -331,7 +333,7 @@
         <svg id="svgLayer">
           <defs>
             <marker id="arrowHead" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-              <path d="M 0 0 L 10 5 L 0 10 z" fill="#007aff" />
+              <path d="M 0 0 L 10 5 L 0 10 z" class="arrow-marker-path" />
             </marker>
           </defs>
         </svg>
@@ -1364,28 +1366,68 @@
     }
 
     // 📍 點畫面空白處的座標，就在那個位置直接生成一個可以打字的文字框
+    // 注意：#noteViewer 本身會鋪滿整個畫布，所以「點在筆記區塊裡」不代表「點在真正的文字上」，
+    // 這裡改用「該座標附近有沒有真正的文字」來判斷，而不是單純看點到哪個元素。
     (function initTapAnywhereToType() {
       const wrapper = document.getElementById('canvasWrapper');
       const viewer = document.getElementById('noteViewer');
       if (!wrapper || !viewer) return;
 
-      wrapper.addEventListener('click', (e) => {
+      function isNearRealText(x, y) {
+        let range = null;
+        if (document.caretRangeFromPoint) {
+          range = document.caretRangeFromPoint(x, y);
+        } else if (document.caretPositionFromPoint) {
+          const pos = document.caretPositionFromPoint(x, y);
+          if (pos && pos.offsetNode) {
+            range = document.createRange();
+            range.setStart(pos.offsetNode, pos.offset);
+            range.collapse(true);
+          }
+        }
+        if (!range) return false;
+
+        const node = range.startContainer;
+        if (node.nodeType !== Node.TEXT_NODE || !node.textContent.trim()) return false;
+
+        // 量出最近的文字字元跟點擊座標的距離，太遠就代表其實是點在空白處
+        const rects = range.getClientRects();
+        if (!rects.length) return false;
+        const r = rects[0];
+        const dx = Math.max(r.left - x, x - r.right, 0);
+        const dy = Math.max(r.top - y, y - r.bottom, 0);
+        return Math.sqrt(dx * dx + dy * dy) < 16;
+      }
+
+      function handlePointerDown(e) {
         if (isLocked) return;
-        // 點到文字框/圖片框、箭頭連線，或點在筆記主文字上，交給原本行為，這裡不處理
-        if (e.target.closest('.tree-box') || e.target.closest('svg') || viewer.contains(e.target)) return;
+        // 點到文字框/圖片框、箭頭連線，交給原本行為，這裡不處理
+        if (e.target.closest('.tree-box') || e.target.closest('svg')) return;
+
+        const point = e.touches ? e.touches[0] : e;
+        const clientX = point.clientX;
+        const clientY = point.clientY;
+
+        // 點的位置附近真的有既有文字，就交給瀏覽器原生的編輯行為
+        if (isNearRealText(clientX, clientY)) return;
+
+        if (e.cancelable) e.preventDefault();
 
         const rect = wrapper.getBoundingClientRect();
-        const clickX = e.clientX - rect.left + wrapper.scrollLeft;
-        const clickY = e.clientY - rect.top + wrapper.scrollTop;
+        const x = clientX - rect.left + wrapper.scrollLeft;
+        const y = clientY - rect.top + wrapper.scrollTop;
 
         const boxWidth = 110, boxHeight = 56;
-        const left = Math.max(0, clickX - boxWidth / 2);
-        const top = Math.max(0, clickY - boxHeight / 2);
+        const left = Math.max(0, x - boxWidth / 2);
+        const top = Math.max(0, y - boxHeight / 2);
 
         const box = createMediaBox('', 'text', { left, top });
         const content = box.querySelector('.box-content');
         if (content) content.focus();
-      });
+      }
+
+      wrapper.addEventListener('mousedown', handlePointerDown);
+      wrapper.addEventListener('touchstart', handlePointerDown, { passive: false });
     })();
   </script>
 </body>
